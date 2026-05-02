@@ -104,7 +104,7 @@ class UserServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
 
         // Act
-        userService.deactivateUser(1L);
+        userService.updateStatus(1L, false);
 
         // Assert
         assertFalse(mockUser.isActive(), "The user should be set to inactive");
