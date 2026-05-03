@@ -9,6 +9,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -74,5 +75,11 @@ public class GlobalExceptionHandler {
         public ValidationErrorData(ConstraintViolation<?> violation) {
             this(violation.getPropertyPath().toString(), violation.getMessage());
         }
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<String> handleResponseStatusException(ResponseStatusException ex) {
+        // Retorna exatamente o status (ex: 409) e a mensagem que você definiu no Service
+        return ResponseEntity.status(ex.getStatusCode()).body(ex.getReason());
     }
 }

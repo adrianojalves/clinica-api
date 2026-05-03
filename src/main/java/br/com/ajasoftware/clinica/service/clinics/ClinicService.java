@@ -99,13 +99,7 @@ public class ClinicService {
         clinic.setSite(data.site());
         clinic.setEmail(data.email());
 
-        clinic.getAddress().setLogradouro(data.address().logradouro());
-        clinic.getAddress().setBairro(data.address().bairro());
-        clinic.getAddress().setCep(data.address().cep());
-        clinic.getAddress().setNumero(data.address().numero());
-        clinic.getAddress().setComplemento(data.address().complemento());
-        clinic.getAddress().setCidade(data.address().cidade());
-        clinic.getAddress().setUf(data.address().uf());
+        clinic.getAddress().updateInfo(data.address());
 
         return new ClinicResponseDTO(clinic);
     }
