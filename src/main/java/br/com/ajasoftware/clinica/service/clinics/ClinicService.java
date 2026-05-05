@@ -68,6 +68,7 @@ public class ClinicService {
         clinic.setFone2(data.fone2());
         clinic.setSite(data.site());
         clinic.setEmail(data.email());
+        clinic.setPercentual(data.percentual());
 
         Address address = new Address(
                 data.address().logradouro(),
@@ -98,6 +99,7 @@ public class ClinicService {
         clinic.setFone2(data.fone2());
         clinic.setSite(data.site());
         clinic.setEmail(data.email());
+        clinic.setPercentual(data.percentual());
 
         clinic.getAddress().updateInfo(data.address());
 

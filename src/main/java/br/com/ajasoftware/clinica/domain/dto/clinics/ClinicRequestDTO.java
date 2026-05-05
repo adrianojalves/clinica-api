@@ -1,10 +1,10 @@
 package br.com.ajasoftware.clinica.domain.dto.clinics;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import org.hibernate.validator.constraints.br.CNPJ;
+
+import java.math.BigDecimal;
 
 /**
  * DTO for receiving new clinic creation requests.
@@ -26,6 +26,10 @@ public record ClinicRequestDTO(
         @NotBlank(message = "O e-mail é obrigatório.")
         @Email(message = "Formato de e-mail inválido.")
         String email,
+
+        @DecimalMin(value = "0.0", inclusive = true, message = "O percentual não pode ser negativo.")
+        @DecimalMax(value = "100.0", inclusive = true, message = "O percentual não pode ser maior que 100.")
+        BigDecimal percentual,
 
         @NotNull(message = "Os dados de endereço são obrigatórios.")
         @Valid

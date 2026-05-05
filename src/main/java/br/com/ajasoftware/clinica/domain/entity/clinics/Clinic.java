@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.br.CNPJ;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -49,6 +50,8 @@ public class Clinic {
     // The Address fields will be injected directly into table_clinica
     @Embedded
     private Address address;
+
+    private BigDecimal percentual;
 
     @Column(name = "data_criacao", updatable = false)
     private LocalDateTime createdAt;

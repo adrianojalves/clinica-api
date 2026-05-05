@@ -2,6 +2,8 @@ package br.com.ajasoftware.clinica.domain.dto.clinics;
 
 import br.com.ajasoftware.clinica.domain.entity.clinics.Clinic;
 
+import java.math.BigDecimal;
+
 /**
  * DTO for outgoing clinic data.
  * Maps the Entity to a clear JSON structure, including the embedded address.
@@ -15,6 +17,7 @@ public record ClinicResponseDTO(
         String site,
         String email,
         Boolean active,
+        BigDecimal percentual,
         AddressDataDTO address
 ) {
     public ClinicResponseDTO(Clinic clinic) {
@@ -27,6 +30,7 @@ public record ClinicResponseDTO(
                 clinic.getSite(),
                 clinic.getEmail(),
                 clinic.getActive(),
+                clinic.getPercentual(),
                 clinic.getAddress() != null ? new AddressDataDTO(
                         clinic.getAddress().getLogradouro(),
                         clinic.getAddress().getBairro(),
