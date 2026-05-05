@@ -32,6 +32,12 @@ public class ClinicService {
         return clinicRepository.findWithFilter(filter, pageable).map(ClinicResponseDTO::new);
     }
 
+    @Transactional(readOnly = true)
+    public ClinicResponseDTO getById(Long id) {
+        Clinic clinic = findEntityById(id);
+        return new ClinicResponseDTO(clinic);
+    }
+
     /**
      * Verifies if a given CNPJ is already registered.
      */
@@ -104,5 +110,13 @@ public class ClinicService {
         clinic.getAddress().updateInfo(data.address());
 
         return new ClinicResponseDTO(clinic);
+    }
+
+    /**
+     * Helper method to find an entity or throw 404.
+     */
+    private Clinic findEntityById(Long id) {
+        return clinicRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Clínica não encontrada."));
     }
 }

@@ -1,5 +1,6 @@
 package br.com.ajasoftware.clinica.controller.users;
 
+import br.com.ajasoftware.clinica.domain.dto.clinics.ClinicResponseDTO;
 import br.com.ajasoftware.clinica.domain.dto.users.UserRequestDTO;
 import br.com.ajasoftware.clinica.domain.dto.users.UserResponseDTO;
 import br.com.ajasoftware.clinica.domain.dto.users.UserStatusDTO;
@@ -88,5 +89,10 @@ public class UserController {
         var responseDTO = userService.updateUser(id, data);
 
         return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getById(id));
     }
 }

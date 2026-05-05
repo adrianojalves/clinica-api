@@ -1,18 +1,22 @@
 package br.com.ajasoftware.clinica.service.users;
 
+import br.com.ajasoftware.clinica.domain.dto.clinics.ClinicResponseDTO;
 import br.com.ajasoftware.clinica.domain.dto.users.UserRequestDTO;
 import br.com.ajasoftware.clinica.domain.dto.users.UserResponseDTO;
 import br.com.ajasoftware.clinica.domain.dto.users.UserUpdateRequestDTO;
 import br.com.ajasoftware.clinica.domain.entity.User;
+import br.com.ajasoftware.clinica.domain.entity.clinics.Clinic;
 import br.com.ajasoftware.clinica.domain.filter.users.UserFilter;
 import br.com.ajasoftware.clinica.repository.RoleRepository;
 import br.com.ajasoftware.clinica.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
 
@@ -108,5 +112,16 @@ public class UserService {
         }
 
         return new UserResponseDTO(user);
+    }
+
+    @Transactional(readOnly = true)
+    public UserResponseDTO getById(Long id) {
+        User user = findEntityById(id);
+        return new UserResponseDTO(user);
+    }
+
+    private User findEntityById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
     }
 }

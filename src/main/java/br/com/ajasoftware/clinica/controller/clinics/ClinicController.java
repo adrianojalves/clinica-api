@@ -4,6 +4,7 @@ import br.com.ajasoftware.clinica.domain.dto.clinics.ClinicRequestDTO;
 import br.com.ajasoftware.clinica.domain.dto.clinics.ClinicResponseDTO;
 import br.com.ajasoftware.clinica.domain.dto.clinics.ClinicStatusDTO;
 import br.com.ajasoftware.clinica.domain.dto.clinics.ClinicUpdateDTO;
+import br.com.ajasoftware.clinica.domain.dto.medical.procedures.ProcedureResponseDTO;
 import br.com.ajasoftware.clinica.domain.filter.clinics.ClinicFilter;
 import br.com.ajasoftware.clinica.service.clinics.ClinicService;
 import jakarta.validation.Valid;
@@ -85,5 +86,10 @@ public class ClinicController {
         ClinicResponseDTO clinic = clinicService.update(id, data);
 
         return ResponseEntity.ok(clinic);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ClinicResponseDTO> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(clinicService.getById(id));
     }
 }

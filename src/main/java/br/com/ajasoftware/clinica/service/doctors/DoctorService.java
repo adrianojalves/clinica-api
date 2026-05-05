@@ -1,9 +1,11 @@
 package br.com.ajasoftware.clinica.service.doctors;
 
+import br.com.ajasoftware.clinica.domain.dto.clinics.ClinicResponseDTO;
 import br.com.ajasoftware.clinica.domain.dto.doctors.DoctorRequestDTO;
 import br.com.ajasoftware.clinica.domain.dto.doctors.DoctorResponseDTO;
 import br.com.ajasoftware.clinica.domain.dto.doctors.DoctorUpdateDTO;
 import br.com.ajasoftware.clinica.domain.entity.address.Address;
+import br.com.ajasoftware.clinica.domain.entity.clinics.Clinic;
 import br.com.ajasoftware.clinica.domain.entity.doctors.Doctor;
 import br.com.ajasoftware.clinica.domain.filter.doctors.DoctorFilter;
 import br.com.ajasoftware.clinica.repository.DoctorRepository;
@@ -68,6 +70,12 @@ public class DoctorService {
     public void changeStatus(Long id, boolean newStatus) {
         Doctor doctor = getDoctorOrThrow(id);
         doctor.setActive(newStatus);
+    }
+
+    @Transactional(readOnly = true)
+    public DoctorResponseDTO getById(Long id) {
+        Doctor doctor = getDoctorOrThrow(id);
+        return new DoctorResponseDTO(doctor);
     }
 
     private Doctor getDoctorOrThrow(Long id) {

@@ -1,5 +1,6 @@
 package br.com.ajasoftware.clinica.controller.doctors;
 
+import br.com.ajasoftware.clinica.domain.dto.clinics.ClinicResponseDTO;
 import br.com.ajasoftware.clinica.domain.dto.doctors.DoctorRequestDTO;
 import br.com.ajasoftware.clinica.domain.dto.doctors.DoctorResponseDTO;
 import br.com.ajasoftware.clinica.domain.dto.doctors.DoctorStatusDTO;
@@ -64,5 +65,10 @@ public class DoctorController {
 
         doctorService.changeStatus(id, data.active());
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<DoctorResponseDTO> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(doctorService.getById(id));
     }
 }
