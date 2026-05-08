@@ -14,7 +14,10 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -46,7 +49,9 @@ public class AuthController {
 
         addRefreshTokenCookie(response, refreshToken);
 
-        return ResponseEntity.ok(new AuthenticationResponseDTO(accessToken));
+        List<String> roles = getRoles(user);
+
+        return ResponseEntity.ok(new AuthenticationResponseDTO(accessToken, roles));
     }
 
     /**
@@ -70,7 +75,17 @@ public class AuthController {
 
         addRefreshTokenCookie(response, newRefreshToken);
 
-        return ResponseEntity.ok(new AuthenticationResponseDTO(newAccessToken));
+        List<String> roles = getRoles(user);
+
+        return ResponseEntity.ok(new AuthenticationResponseDTO(newAccessToken, roles));
+    }
+
+    private List<String> getRoles(User user)    {
+        List<String> roles = user.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        return roles;
     }
 
     /**
