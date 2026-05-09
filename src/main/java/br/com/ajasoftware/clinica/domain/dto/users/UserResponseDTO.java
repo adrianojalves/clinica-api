@@ -15,7 +15,7 @@ public record UserResponseDTO(
         String email,
         String phone,
         boolean active,
-        List<String> roles
+        List<RoleResponseDTO> roles
 ) {
     /**
      * Custom constructor to easily convert a User entity into this DTO.
@@ -28,7 +28,7 @@ public record UserResponseDTO(
                 user.getEmail(),
                 user.getPhone(),
                 user.isActive(),
-                user.getRoles().stream().map(Role::getName).toList()
+                user.getRoles().stream().map(RoleResponseDTO::new).toList()
         );
     }
 }
