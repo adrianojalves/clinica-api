@@ -2,6 +2,7 @@ package br.com.ajasoftware.clinica.security;
 
 import br.com.ajasoftware.clinica.repository.UserRepository;
 import br.com.ajasoftware.clinica.service.security.TokenService;
+import com.auth0.jwt.exceptions.TokenExpiredException; // Importação da exceção de expiração
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,21 +34,34 @@ public class SecurityFilter extends OncePerRequestFilter {
 
         var token = this.recoverToken(request);
 
-        if (token != null) {
-            var login = tokenService.validateAccessTokenAndGetSubject(token);
+        try {
+            if (token != null) {
+                var login = tokenService.validateAccessTokenAndGetSubject(token);
 
-            if (!login.isEmpty()) {
-                // If token is valid, we fetch the user and tell Spring they are authenticated
-                var user = userRepository.findByLoginWithRoles(login)
-                        .orElseThrow(() -> new RuntimeException("Erro de autenticação: Usuário não encontrado."));
+                if (!login.isEmpty()) {
+                    // If token is valid, we fetch the user and tell Spring they are authenticated
+                    var user = userRepository.findByLoginWithRoles(login)
+                            .orElseThrow(() -> new RuntimeException("Erro de autenticação: Usuário não encontrado."));
 
-                var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             }
-        }
 
-        // Continue the filter chain (let the request proceed to the Controller or be blocked by Spring)
-        filterChain.doFilter(request, response);
+            // Continue the filter chain (let the request proceed to the Controller or be blocked by Spring)
+            filterChain.doFilter(request, response);
+
+        } catch (TokenExpiredException ex) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Token expirado\"}");
+
+        } catch (Exception ex) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Acesso negado ou token inválido\"}");
+            return;
+        }
     }
 
     /**
@@ -59,5 +73,11 @@ public class SecurityFilter extends OncePerRequestFilter {
             return null;
         }
         return authHeader.replace("Bearer ", "");
+    }
+
+    @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        return path.startsWith("/api/auth/");
     }
 }
