@@ -10,8 +10,6 @@ public record ProcedureResponseDTO(
         String name,
         String description,
         ProcedureType type,
-        BigDecimal transferValue,
-        BigDecimal price,
         Boolean active
 ) {
     public ProcedureResponseDTO(MedicalProcedure procedure) {
@@ -20,8 +18,6 @@ public record ProcedureResponseDTO(
                 procedure.getName(),
                 procedure.getDescription(),
                 procedure.getType(),
-                procedure.getTransferValue(),
-                procedure.getPrice(),
                 procedure.getActive()
         );
     }

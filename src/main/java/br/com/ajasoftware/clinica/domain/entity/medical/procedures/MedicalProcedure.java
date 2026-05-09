@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -26,11 +25,6 @@ public class MedicalProcedure {
 
     @Enumerated(EnumType.STRING)
     private ProcedureType type;
-
-    @Column(name = "transfer_value")
-    private BigDecimal transferValue;
-
-    private BigDecimal price;
 
     private Boolean active;
 

@@ -21,7 +21,7 @@ public class MedicalProcedureService {
 
     @Transactional(readOnly = true)
     public Page<ProcedureResponseDTO> listWithFilters(ProcedureFilterDTO filter, Pageable pageable) {
-        return repository.findActiveWithFilters(filter, pageable)
+        return repository.findWithFilters(filter, pageable)
                 .map(ProcedureResponseDTO::new);
     }
 
@@ -35,6 +35,7 @@ public class MedicalProcedureService {
     public ProcedureResponseDTO create(ProcedureRequestDTO data) {
         MedicalProcedure procedure = new MedicalProcedure();
         updateEntityData(procedure, data);
+        procedure.setActive(true);
 
         repository.save(procedure);
         return new ProcedureResponseDTO(procedure);
@@ -61,8 +62,8 @@ public class MedicalProcedureService {
         entity.setName(dto.name());
         entity.setDescription(dto.description());
         entity.setType(dto.type());
-        entity.setTransferValue(dto.transferValue());
-        entity.setPrice(dto.price());
+        if(dto.active()!=null)
+            entity.setActive(dto.active());
     }
 
     /**

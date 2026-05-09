@@ -16,10 +16,5 @@ public record ProcedureRequestDTO(
         @NotNull(message = "O tipo (EXAME ou CONSULTA) é obrigatório.")
         ProcedureType type,
 
-        @DecimalMin(value = "0.0", message = "O valor de repasse não pode ser negativo.")
-        BigDecimal transferValue,
-
-        @NotNull(message = "O valor total do procedimento é obrigatório.")
-        @DecimalMin(value = "0.0", message = "O valor total não pode ser negativo.")
-        BigDecimal price
+        Boolean active
 ) {}
