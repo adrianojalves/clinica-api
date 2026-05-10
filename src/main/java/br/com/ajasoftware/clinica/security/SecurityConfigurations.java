@@ -42,6 +42,7 @@ public class SecurityConfigurations {
                         // Public endpoints (Login and Refresh Token)
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/clinica/company/logo").permitAll()
 
                         // Protect everything else
                         .anyRequest().authenticated()
