@@ -29,7 +29,7 @@ public class ClinicDoctorProcedureService {
     private final MedicalProcedureRepository medicalProcedureRepository;
 
     @Transactional(readOnly = true)
-    public Page<ClinicDoctorProcedureResponseDTO> listWithFilters(ClinicDoctorProcedureFilterDTO filter, Pageable pageable) {
+    public Page<ClinicDoctorProcedureResponseDTO>   listWithFilters(ClinicDoctorProcedureFilterDTO filter, Pageable pageable) {
         return repository.findWithFilters(filter, pageable)
                 .map(ClinicDoctorProcedureResponseDTO::new);
     }
