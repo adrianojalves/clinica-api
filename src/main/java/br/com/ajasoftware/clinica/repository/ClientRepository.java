@@ -24,10 +24,11 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
      * Note: We don't filter by encrypted fields (CPF/RG) directly in SQL.
      */
     @Query("""
-           SELECT c FROM Client c 
-           WHERE (:#{#filter.id} IS NULL OR c.id = :#{#filter.id})
-           AND (:#{#filter.name} IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :#{#filter.name}, '%')))
-           AND (:#{#filter.status} IS NULL OR c.active = :#{#filter.status})
-           """)
+       SELECT c FROM Client c 
+       WHERE (:#{#filter.id} IS NULL OR c.id = :#{#filter.id})
+       AND (:#{#filter.name} IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :#{#filter.name}, '%')))
+       AND (:#{#filter.status} IS NULL OR c.active = :#{#filter.status})
+       AND (:#{#filter.cpf} IS NULL OR c.cpfHash = :#{#filter.cpf}) 
+       """)
     Page<Client> findWithFilter(@Param("filter") ClientFilter filter, Pageable pageable);
 }

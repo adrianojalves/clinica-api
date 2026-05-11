@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Optional;
+
 /**
  * Service layer for Client management.
  * Handles business logic, CPF hashing for LGPD compliance, and data persistence.
@@ -28,6 +30,11 @@ public class ClientService {
 
     @Transactional(readOnly = true)
     public Page<ClientResponseDTO> listWithFilter(ClientFilter filter, Pageable pageable) {
+        if (filter.getCpf() != null && !filter.getCpf().isBlank()) {
+            String hash = SysClinicaUtils.generateSha256(filter.getCpf());
+            filter.setCpf(hash);
+        }
+
         return clientRepository.findWithFilter(filter, pageable)
                 .map(ClientResponseDTO::new);
     }
@@ -105,5 +112,18 @@ public class ClientService {
     private Client getClientOrThrow(Long id) {
         return clientRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado no sistema."));
+    }
+
+    /**
+     * Searches for a client by CPF using its SHA-256 hash.
+     * This is used for the "Upsert Fluido" strategy on the frontend.
+     */
+    @Transactional(readOnly = true)
+    public Optional<ClientResponseDTO> findByCpf(String cpf) {
+        // Generate the hash from the raw CPF provided by the user
+        String hash = SysClinicaUtils.generateSha256(cpf);
+
+        return clientRepository.findByCpfHash(hash)
+                .map(ClientResponseDTO::new);
     }
 }

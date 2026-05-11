@@ -73,4 +73,12 @@ public class ClientController {
         clientService.changeStatus(id, data.active());
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/by-cpf/{cpf}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ClientResponseDTO> getByCpf(@PathVariable String cpf) {
+        return clientService.findByCpf(cpf)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }
