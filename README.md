@@ -11,6 +11,7 @@ This project is a high-performance RESTful API designed to handle the complex op
 * **Language:** Java 21
 * **Framework:** Spring Boot 3.x
 * **Security:** Spring Security & JWT (JSON Web Tokens)
+* **Data Privacy:** AES-256 encryption for sensitive PII (Personally Identifiable Information) using JPA Converters (LGPD/GDPR Compliance)
 * **Database:** MariaDB
 * **Migrations:** Flyway
 * **ORM:** Spring Data JPA / Hibernate

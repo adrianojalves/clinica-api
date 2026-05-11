@@ -44,7 +44,7 @@ public class ClientController {
      * Write operations restricted to ADMIN or CADASTROS roles.
      */
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'CADASTROS')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CADASTROS','ATENDIMENTO')")
     public ResponseEntity<ClientResponseDTO> create(
             @RequestBody @Valid ClientRequestDTO data,
             UriComponentsBuilder uriBuilder) {
