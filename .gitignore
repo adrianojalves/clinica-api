@@ -82,3 +82,9 @@ build/
 # ==========================================
 uploads/
 application-dev.properties
+
+# ==========================================
+# Frontend Build (Production)
+# ==========================================
+src/main/resources/static/*
+!src/main/resources/static/.gitkeep

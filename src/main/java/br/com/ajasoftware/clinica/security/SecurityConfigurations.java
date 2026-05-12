@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -32,24 +33,52 @@ public class SecurityConfigurations {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
-                // We disable CSRF because our tokens are immune to it in a stateless API
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
-                // No session will be created in the server's memory
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
                 .authorizeHttpRequests(authorize -> authorize
-                        // Public endpoints (Login and Refresh Token)
+                        // 1. PUBLIC ENDPOINTS (API)
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/clinica/company/logo").permitAll()
 
-                        // Protect everything else
+                        // 2. FRONTEND STATIC RESOURCES & FONTS
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/*.js",
+                                "/*.css",
+                                "/*.ico",
+                                "/*.png",
+                                "/*.jpg",      // Adicionado para sua logo.jpg
+                                "/*.jpeg",
+                                "/*.svg",      // Adicionado para ícones em SVG
+                                "/**.woff",    // Fontes na raiz
+                                "/**.woff2",
+                                "/**.ttf",
+                                "/**.eot",     // Adicionado para compatibilidade de fontes
+                                "/assets/**",
+                                "/images/**",
+                                "/media/**"    // Libera tudo dentro de media (fontes e assets)
+                        ).permitAll()
+
+                        // 3. PROTECT EVERYTHING ELSE
                         .anyRequest().authenticated()
                 )
-                // Adds our custom filter BEFORE the standard Spring filter
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
+    }
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers(
+                "/images/**",
+                "/media/**",
+                "/assets/**",
+                "/favicon.ico",
+                "/*.js",
+                "/*.css"
+        );
     }
 
     /**

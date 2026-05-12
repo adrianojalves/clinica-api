@@ -22,6 +22,8 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -51,8 +53,8 @@ class ClinicControllerTest {
     @WithMockUser
     void shouldCreateClinicSuccessfully() throws Exception {
         var addressDTO = new AddressDataDTO("Av. Paulista", "Bela Vista", "01310100", "São Paulo", "SP", "", "1000");
-        var validRequest = new ClinicRequestDTO("Clínica Teste", "12.345.678/0001-95", "11999999999", null, null, "teste@clinica.com", addressDTO);
-        var expectedResponse = new ClinicResponseDTO(1L, "Clínica Teste", "12.345.678/0001-95", "11999999999", null, null, "teste@clinica.com", true, addressDTO);
+        var validRequest = new ClinicRequestDTO("Clínica Teste", "12.345.678/0001-95", "11999999999", null, null, "teste@clinica.com", BigDecimal.ZERO, addressDTO);
+        var expectedResponse = new ClinicResponseDTO(1L, "Clínica Teste", "12.345.678/0001-95", "11999999999", null, null, "teste@clinica.com", true, BigDecimal.ZERO, addressDTO);
 
         Mockito.when(clinicService.create(any(ClinicRequestDTO.class))).thenReturn(expectedResponse);
 
@@ -71,7 +73,7 @@ class ClinicControllerTest {
     @WithMockUser
     void shouldReturnBadRequestWhenCnpjIsInvalid() throws Exception {
         var addressDTO = new AddressDataDTO("Av. Paulista", "Bela Vista", "01310100", "São Paulo", "SP", "", "1000");
-        var invalidRequest = new ClinicRequestDTO("Clínica Teste", "11.111.111/1111-11", "11999999999", null, null, "teste@clinica.com", addressDTO);
+        var invalidRequest = new ClinicRequestDTO("Clínica Teste", "11.111.111/1111-11", "11999999999", null, null, "teste@clinica.com", BigDecimal.ZERO, addressDTO);
 
         mockMvc.perform(post("/api/clinica/clinics")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -87,7 +89,7 @@ class ClinicControllerTest {
     @WithMockUser
     void shouldReturnConflictWhenCnpjAlreadyExists() throws Exception {
         var addressDTO = new AddressDataDTO("Av. Paulista", "Bela Vista", "01310100", "São Paulo", "SP", "", "1000");
-        var validRequest = new ClinicRequestDTO("Clínica Teste", "12.345.678/0001-95", "11999999999", null, null, "teste@clinica.com", addressDTO);
+        var validRequest = new ClinicRequestDTO("Clínica Teste", "12.345.678/0001-95", "11999999999", null, null, "teste@clinica.com", BigDecimal.ZERO, addressDTO);
 
         Mockito.when(clinicService.create(any(ClinicRequestDTO.class)))
                 .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Operação falhou: O CNPJ informado já está cadastrado."));
