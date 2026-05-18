@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -64,7 +65,7 @@ class UserServiceTest {
     @DisplayName("Should create a user successfully and encode the password")
     void createUserSuccessfully() {
         // Arrange
-        var requestDTO = new UserRequestDTO("UserName UserLastName", "user.admin", "123456", "user@admin.com.br", "11999999999", List.of(1L));
+        var requestDTO = new UserRequestDTO("UserName UserLastName", "user.admin", "123456", "user@admin.com.br", "11999999999", BigDecimal.ZERO, List.of(1L));
 
         when(userRepository.existsByLogin("user.admin")).thenReturn(false);
         when(roleRepository.findAllById(List.of(1L))).thenReturn(List.of(mockRole));
@@ -85,7 +86,7 @@ class UserServiceTest {
     @DisplayName("Should throw exception when trying to create user with existing login")
     void throwExceptionWhenLoginExists() {
         // Arrange
-        var requestDTO = new UserRequestDTO("UserName", "user.admin", "123456", "test@test.com", null, List.of(1L));
+        var requestDTO = new UserRequestDTO("UserName", "user.admin", "123456", "test@test.com", null, BigDecimal.ZERO,List.of(1L));
         when(userRepository.existsByLogin("user.admin")).thenReturn(true);
 
         // Act & Assert
@@ -114,7 +115,7 @@ class UserServiceTest {
     @DisplayName("Should update user and encode new password if provided")
     void updateUserWithNewPassword() {
         // Arrange
-        var updateDTO = new UserUpdateRequestDTO("UserName Edited", "novo@email.com", null, true, "novaSenha123", List.of(1L));
+        var updateDTO = new UserUpdateRequestDTO("UserName Edited", "novo@email.com", null, true, "novaSenha123", BigDecimal.ZERO, List.of(1L));
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
         when(roleRepository.findAllById(List.of(1L))).thenReturn(List.of(mockRole));
@@ -133,7 +134,7 @@ class UserServiceTest {
     @DisplayName("Should update user WITHOUT changing password if password is null or blank")
     void updateUserWithoutChangingPassword() {
         // Arrange
-        var updateDTO = new UserUpdateRequestDTO("UserName Editado", "novo@email.com", null, true, "", List.of(1L));
+        var updateDTO = new UserUpdateRequestDTO("UserName Editado", "novo@email.com", null, true, "", BigDecimal.ZERO, List.of(1L));
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
         when(roleRepository.findAllById(List.of(1L))).thenReturn(List.of(mockRole));
