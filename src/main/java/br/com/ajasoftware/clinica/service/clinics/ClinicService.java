@@ -6,6 +6,7 @@ import br.com.ajasoftware.clinica.domain.dto.clinics.ClinicUpdateDTO;
 import br.com.ajasoftware.clinica.domain.entity.address.Address;
 import br.com.ajasoftware.clinica.domain.entity.clinics.Clinic;
 import br.com.ajasoftware.clinica.domain.filter.clinics.ClinicFilter;
+import br.com.ajasoftware.clinica.exceptions.BusinessException;
 import br.com.ajasoftware.clinica.repository.ClinicRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -46,6 +47,11 @@ public class ClinicService {
         return clinicRepository.existsByCnpj(cnpj);
     }
 
+    @Transactional(readOnly = true)
+    public boolean checkNameExists(String name) {
+        return clinicRepository.existsByNameIgnoreCase(name.trim());
+    }
+
     /**
      * Updates the clinic's active status (Activate/Deactivate).
      */
@@ -63,6 +69,7 @@ public class ClinicService {
      */
     @Transactional
     public ClinicResponseDTO create(ClinicRequestDTO data) {
+        validarClinic(data);
         if (clinicRepository.existsByCnpj(data.cnpj())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Operação falhou: O CNPJ informado já está cadastrado.");
         }
@@ -118,5 +125,46 @@ public class ClinicService {
     private Clinic findEntityById(Long id) {
         return clinicRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Clínica não encontrada."));
+    }
+
+    public void validarClinic(ClinicRequestDTO dto) {
+        String cnpj = dto.cnpj();
+
+        if (cnpj == null || cnpj.trim().isEmpty()) {
+            return;
+        }
+
+        String numeros = cnpj.replaceAll("\\D", "");
+
+        if (numeros.length() != 14 || numeros.matches("(\\d)\\1{13}")) {
+            throw new BusinessException("O CNPJ informado é inválido.");
+        }
+
+        try {
+            int[] peso1 = {5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
+            int[] peso2 = {6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
+
+            int soma = 0;
+            for (int i = 0; i < 12; i++) {
+                soma += Character.getNumericValue(numeros.charAt(i)) * peso1[i];
+            }
+            int r = soma % 11;
+            int digito1 = (r < 2) ? 0 : (11 - r);
+
+            soma = 0;
+            for (int i = 0; i < 13; i++) {
+                soma += Character.getNumericValue(numeros.charAt(i)) * peso2[i];
+            }
+            r = soma % 11;
+            int digito2 = (r < 2) ? 0 : (11 - r);
+
+            if (digito1 != Character.getNumericValue(numeros.charAt(12)) ||
+                    digito2 != Character.getNumericValue(numeros.charAt(13))) {
+                throw new BusinessException("O CNPJ informado é inválido.");
+            }
+
+        } catch (Exception e) {
+            throw new BusinessException("O CNPJ informado é inválido.");
+        }
     }
 }

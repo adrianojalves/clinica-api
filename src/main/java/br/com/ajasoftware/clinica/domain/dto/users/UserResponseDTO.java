@@ -3,6 +3,7 @@ package br.com.ajasoftware.clinica.domain.dto.users;
 import br.com.ajasoftware.clinica.domain.entity.Role;
 import br.com.ajasoftware.clinica.domain.entity.User;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -15,6 +16,7 @@ public record UserResponseDTO(
         String email,
         String phone,
         boolean active,
+        BigDecimal percentualDesconto,
         List<RoleResponseDTO> roles
 ) {
     /**
@@ -28,6 +30,7 @@ public record UserResponseDTO(
                 user.getEmail(),
                 user.getPhone(),
                 user.isActive(),
+                user.getPercentutalDesconto(),
                 user.getRoles().stream().map(RoleResponseDTO::new).toList()
         );
     }

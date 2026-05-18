@@ -51,6 +51,12 @@ public class ClinicController {
         return ResponseEntity.ok(exists);
     }
 
+    @GetMapping("/exists/name")
+    public ResponseEntity<Boolean> checkNameExists(@RequestParam String name) {
+        boolean exists = clinicService.checkNameExists(name);
+        return ResponseEntity.ok(exists);
+    }
+
     @PatchMapping("/{id}/status")
     public ResponseEntity<Void> updateStatus(@PathVariable Long id,
                                              @RequestBody @Valid ClinicStatusDTO data) {

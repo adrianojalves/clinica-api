@@ -14,20 +14,24 @@ public record ClinicDoctorProcedureResponseDTO(
         String procedureName,
         String procedureType,
         BigDecimal transferValue,
-        BigDecimal price
+        BigDecimal price,
+        BigDecimal transferValueCard,
+        BigDecimal priceCard
 ) {
     public ClinicDoctorProcedureResponseDTO(ClinicDoctorProcedure entity) {
         this(
                 entity.getId(),
                 entity.getClinic().getId(),
                 entity.getClinic().getName(),
-                entity.getDoctor().getId(),
-                entity.getDoctor().getName(),
+                entity.getDoctor()!=null?entity.getDoctor().getId():0L,
+                entity.getDoctor()!=null?entity.getDoctor().getName():"",
                 entity.getMedicalProcedure().getId(),
                 entity.getMedicalProcedure().getName(),
                 entity.getMedicalProcedure().getType().name(),
                 entity.getTransferValue(),
-                entity.getPrice()
+                entity.getPrice(),
+                entity.getTransferValueCard(),
+                entity.getPriceCard()
         );
     }
 }

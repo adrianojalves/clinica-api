@@ -13,12 +13,34 @@ public interface ClinicDoctorProcedureRepository extends JpaRepository<ClinicDoc
     /**
      * Checks if a specific combination of Clinic, Doctor, and Procedure already exists.
      */
-    boolean existsByClinicIdAndDoctorIdAndMedicalProcedureId(Long clinicId, Long doctorId, Long medicalProcedureId);
+    @Query("""
+        SELECT COUNT(c) > 0 FROM ClinicDoctorProcedure c
+        WHERE c.clinic.id = :clinicId
+        AND (:doctorId IS NULL AND c.doctor.id IS NULL OR c.doctor.id = :doctorId)
+        AND c.medicalProcedure.id = :medicalProcedureId
+        """)
+    boolean existsCombination(
+            @Param("clinicId") Long clinicId,
+            @Param("doctorId") Long doctorId,
+            @Param("medicalProcedureId") Long medicalProcedureId
+    );
 
     /**
      * Checks if a specific combination exists, ignoring a specific ID (useful for updates).
      */
-    boolean existsByClinicIdAndDoctorIdAndMedicalProcedureIdAndIdNot(Long clinicId, Long doctorId, Long medicalProcedureId, Long id);
+    @Query("""
+        SELECT COUNT(c) > 0 FROM ClinicDoctorProcedure c
+        WHERE c.clinic.id = :clinicId
+        AND (:doctorId IS NULL AND c.doctor.id IS NULL OR c.doctor.id = :doctorId)
+        AND c.medicalProcedure.id = :medicalProcedureId
+        AND c.id <> :id
+        """)
+    boolean existsCombinationForAnotherId(
+            @Param("clinicId") Long clinicId,
+            @Param("doctorId") Long doctorId,
+            @Param("medicalProcedureId") Long medicalProcedureId,
+            @Param("id") Long id
+    );
 
     /**
      * Dynamic search using SpEL.
@@ -26,7 +48,7 @@ public interface ClinicDoctorProcedureRepository extends JpaRepository<ClinicDoc
      */
     @Query(value = "SELECT cdp FROM ClinicDoctorProcedure cdp " +
             "JOIN FETCH cdp.clinic " +
-            "JOIN FETCH cdp.doctor " +
+            "LEFT JOIN FETCH cdp.doctor " +
             "JOIN FETCH cdp.medicalProcedure " +
             "WHERE (:#{#filter.clinicId} IS NULL OR cdp.clinic.id = :#{#filter.clinicId}) AND " +
             "(:#{#filter.doctorId} IS NULL OR cdp.doctor.id = :#{#filter.doctorId}) AND " +

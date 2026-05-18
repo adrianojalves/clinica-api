@@ -73,9 +73,9 @@ public class ClinicDoctorProcedureService {
     private void validateUniqueTrio(Long clinicId, Long doctorId, Long procedureId, Long idToIgnore) {
         boolean exists;
         if (idToIgnore == null) {
-            exists = repository.existsByClinicIdAndDoctorIdAndMedicalProcedureId(clinicId, doctorId, procedureId);
+            exists = repository.existsCombination(clinicId, doctorId, procedureId);
         } else {
-            exists = repository.existsByClinicIdAndDoctorIdAndMedicalProcedureIdAndIdNot(clinicId, doctorId, procedureId, idToIgnore);
+            exists = repository.existsCombinationForAnotherId(clinicId, doctorId, procedureId, idToIgnore);
         }
 
         if (exists) {
@@ -90,8 +90,11 @@ public class ClinicDoctorProcedureService {
         Clinic clinic = clinicRepository.findById(data.clinicId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Clínica não encontrada."));
 
-        Doctor doctor = doctorRepository.findById(data.doctorId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Médico não encontrado."));
+        Doctor doctor = switch (data.doctorId()) {
+            case null -> null;
+            case Long id -> doctorRepository.findById(id)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Médico não encontrado."));
+        };
 
         MedicalProcedure procedure = medicalProcedureRepository.findById(data.medicalProcedureId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Procedimento não encontrado."));
@@ -101,6 +104,8 @@ public class ClinicDoctorProcedureService {
         entity.setMedicalProcedure(procedure);
         entity.setTransferValue(data.transferValue());
         entity.setPrice(data.price());
+        entity.setTransferValueCard(data.transferValueCard());
+        entity.setPriceCard(data.priceCard());
     }
 
     private ClinicDoctorProcedure findEntityById(Long id) {

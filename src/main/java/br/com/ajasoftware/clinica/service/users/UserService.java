@@ -71,6 +71,7 @@ public class UserService {
         user.setEmail(data.email());
         user.setPhone(data.phone());
         user.setActive(true); // New users are active by default
+        user.setPercentutalDesconto(data.percentualDesconto());
         user.setRoles(new HashSet<>(roles));
 
         userRepository.save(user);
@@ -105,6 +106,7 @@ public class UserService {
         user.setEmail(data.email());
         user.setPhone(data.phone());
         user.setActive(data.active());
+        user.setPercentutalDesconto(data.percentualDesconto());
         user.setRoles(new HashSet<>(roles));
 
         if (data.password() != null && !data.password().isBlank()) {

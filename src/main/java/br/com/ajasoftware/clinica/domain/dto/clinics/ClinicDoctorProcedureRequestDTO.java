@@ -8,7 +8,6 @@ public record ClinicDoctorProcedureRequestDTO(
         @NotNull(message = "A clínica é obrigatória.")
         Long clinicId,
 
-        @NotNull(message = "O médico é obrigatório.")
         Long doctorId,
 
         @NotNull(message = "O procedimento/exame é obrigatório.")
@@ -19,5 +18,17 @@ public record ClinicDoctorProcedureRequestDTO(
 
         @NotNull(message = "O valor total é obrigatório.")
         @DecimalMin(value = "0.0", message = "O valor total não pode ser negativo.")
-        BigDecimal price
-) {}
+        BigDecimal price,
+
+        @DecimalMin(value = "0.0", message = "O valor de repasse de cartão não pode ser negativo.")
+        BigDecimal transferValueCard,
+
+        @DecimalMin(value = "0.0", message = "O valor total de cartão não pode ser negativo.")
+        BigDecimal priceCard
+) {
+        public ClinicDoctorProcedureRequestDTO {
+                if (doctorId != null && doctorId == 0) {
+                        doctorId = null;
+                }
+        }
+}

@@ -1,0 +1,1 @@
+ALTER TABLE table_clinica MODIFY COLUMN cnpj varchar(20) NULL;

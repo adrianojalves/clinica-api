@@ -12,17 +12,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
-/**
- * Global exception interceptor.
- * Ensures internal errors do not reach Spring Security (preventing 403 Forbidden)
- * and formats error messages in a user-friendly way for the Frontend.
- */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     /**
      * Captures @Valid errors thrown in DTOs (Controller level).
+     * Retorna um Array (Padrão esperado pelo Angular para HTTP 400).
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<List<ValidationErrorData>> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
@@ -35,6 +32,7 @@ public class GlobalExceptionHandler {
 
     /**
      * Captures Entity validation errors (JPA/Hibernate level).
+     * Retorna um Array (Padrão esperado pelo Angular para HTTP 400).
      */
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<List<ValidationErrorData>> handleConstraintViolation(ConstraintViolationException ex) {
@@ -46,23 +44,44 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Captures transaction errors. Hibernate usually wraps ConstraintViolationException
-     * inside a TransactionSystemException during flush/commit.
+     * Captures custom Business Rules validations.
+     */
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<List<ValidationErrorData>> handleBusinessException(BusinessException ex) {
+        ValidationErrorData error = new ValidationErrorData("global", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(List.of(error));
+    }
+
+    /**
+     * Captures transaction errors.
      */
     @ExceptionHandler(TransactionSystemException.class)
     public ResponseEntity<?> handleTransactionSystemException(TransactionSystemException ex) {
-        // Unwraps the error to check if the root cause is a validation failure (e.g., invalid CNPJ)
         if (ex.getRootCause() instanceof ConstraintViolationException constraintException) {
             return handleConstraintViolation(constraintException);
         }
 
-        // If it is another database error, returns a generic 500 to prevent architecture leakage
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Internal error during transaction processing.");
+                .body(Map.of("message", "Internal error during transaction processing."));
     }
 
     /**
-     * Internal record to format the error response JSON.
+     * Captures ResponseStatusException (ex: 404 NOT FOUND, 409 CONFLICT).
+     */
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, String>> handleResponseStatusException(ResponseStatusException ex) {
+        Map<String, String> errorBody = Map.of("message", ex.getReason() != null ? ex.getReason() : "Erro na requisição.");
+
+        return ResponseEntity
+                .status(ex.getStatusCode())
+                .body(errorBody);
+    }
+
+    /**
+     * Internal record to format the error response JSON array.
      */
     private record ValidationErrorData(String field, String message) {
 
@@ -75,11 +94,5 @@ public class GlobalExceptionHandler {
         public ValidationErrorData(ConstraintViolation<?> violation) {
             this(violation.getPropertyPath().toString(), violation.getMessage());
         }
-    }
-
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<String> handleResponseStatusException(ResponseStatusException ex) {
-        // Retorna exatamente o status (ex: 409) e a mensagem que você definiu no Service
-        return ResponseEntity.status(ex.getStatusCode()).body(ex.getReason());
     }
 }

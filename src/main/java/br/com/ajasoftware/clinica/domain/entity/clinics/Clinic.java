@@ -30,8 +30,6 @@ public class Clinic {
     @Column(name = "nome", nullable = false)
     private String name;
 
-    @NotBlank(message = "O CNPJ é obrigatório.")
-    @CNPJ(message = "O CNPJ informado é inválido.")
     private String cnpj;
 
     @Column(nullable = false)

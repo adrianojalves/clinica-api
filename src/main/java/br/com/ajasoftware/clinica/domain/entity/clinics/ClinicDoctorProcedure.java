@@ -16,7 +16,7 @@ import java.math.BigDecimal;
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "uk_clinic_doctor_procedure",
-                        columnNames = {"clinic_id", "doctor_id", "medical_procedure_id"}
+                        columnNames = {"clinic_id", "_doctor_id_distinct", "medical_procedure_id"}
                 )
         }
 )
@@ -35,7 +35,7 @@ public class ClinicDoctorProcedure {
     private Clinic clinic;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doctor_id", nullable = false)
+    @JoinColumn(name = "doctor_id")
     private Doctor doctor;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -47,4 +47,10 @@ public class ClinicDoctorProcedure {
 
     @Column(nullable = false)
     private BigDecimal price;
+
+    @Column(name = "transfer_value_card")
+    private BigDecimal transferValueCard;
+
+    @Column(name = "price_card", nullable = false)
+    private BigDecimal priceCard;
 }

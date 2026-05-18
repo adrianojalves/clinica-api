@@ -1,0 +1,1 @@
+ALTER TABLE table_clinica DROP CONSTRAINT cnpj;

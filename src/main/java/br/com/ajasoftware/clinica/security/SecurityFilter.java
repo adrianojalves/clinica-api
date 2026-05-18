@@ -2,7 +2,7 @@ package br.com.ajasoftware.clinica.security;
 
 import br.com.ajasoftware.clinica.repository.UserRepository;
 import br.com.ajasoftware.clinica.service.security.TokenService;
-import com.auth0.jwt.exceptions.TokenExpiredException; // Importação da exceção de expiração
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,7 +41,7 @@ public class SecurityFilter extends OncePerRequestFilter {
                 if (!login.isEmpty()) {
                     // If token is valid, we fetch the user and tell Spring they are authenticated
                     var user = userRepository.findByLoginWithRoles(login)
-                            .orElseThrow(() -> new RuntimeException("Erro de autenticação: Usuário não encontrado."));
+                            .orElseThrow(() -> new RuntimeException("Erro de autenticao: Usurio no encontrado."));
 
                     var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -59,7 +59,7 @@ public class SecurityFilter extends OncePerRequestFilter {
         } catch (Exception ex) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\": \"Acesso negado ou token inválido\"}");
+            response.getWriter().write("{\"error\": \"Acesso negado ou token invlido\"}");
             return;
         }
     }
@@ -78,6 +78,25 @@ public class SecurityFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        return path.startsWith("/api/auth/");
+
+        return path.startsWith("/api/auth/")
+                || path.equals("/error")
+                || path.equals("/api/clinica/company/logo")
+                || path.startsWith("/assets/")
+                || path.startsWith("/images/")
+                || path.startsWith("/media/")
+                || path.equals("/")
+                || path.equals("/index.html")
+                || path.endsWith(".js")
+                || path.endsWith(".css")
+                || path.endsWith(".ico")
+                || path.endsWith(".png")
+                || path.endsWith(".jpg")
+                || path.endsWith(".jpeg")
+                || path.endsWith(".svg")
+                || path.endsWith(".woff")
+                || path.endsWith(".woff2")
+                || path.endsWith(".ttf")
+                || path.endsWith(".eot");
     }
 }

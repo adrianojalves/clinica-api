@@ -7,6 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
@@ -51,6 +52,9 @@ public class User implements UserDetails {
     @UpdateTimestamp
     @Column(name = "data_atualizacao")
     private LocalDateTime updatedAt;
+
+    @Column(name = "percentual_desconto")
+    private BigDecimal percentutalDesconto;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

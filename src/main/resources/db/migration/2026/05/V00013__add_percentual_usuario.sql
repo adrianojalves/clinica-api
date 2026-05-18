@@ -1,0 +1,1 @@
+ALTER TABLE table_usuario ADD COLUMN percentual_desconto DECIMAL(5,2) NOT NUll DEFAULT 0;

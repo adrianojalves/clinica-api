@@ -1,10 +1,8 @@
 package br.com.ajasoftware.clinica.domain.dto.users;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -26,6 +24,9 @@ public record UserRequestDTO(
         String email,
 
         String phone,
+
+        @NotNull(message = "O Percentual de desconto é obrigatório")
+        BigDecimal percentualDesconto,
 
         @NotEmpty(message = "O usuário deve ter pelo menos um perfil de acesso.")
         List<Long> roleIds

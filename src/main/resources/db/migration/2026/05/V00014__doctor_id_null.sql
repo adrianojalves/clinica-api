@@ -1,0 +1,1 @@
+ALTER TABLE table_clinic_doctor_procedure MODIFY COLUMN doctor_id bigint(20) NULL;

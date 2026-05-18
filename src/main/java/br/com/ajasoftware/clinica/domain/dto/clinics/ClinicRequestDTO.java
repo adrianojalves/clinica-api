@@ -13,8 +13,6 @@ public record ClinicRequestDTO(
         @NotBlank(message = "O nome é obrigatório.")
         String name,
 
-        @NotBlank(message = "O CNPJ é obrigatório.")
-        @CNPJ(message = "O CNPJ informado é inválido.")
         String cnpj,
 
         @NotBlank(message = "O telefone principal é obrigatório.")

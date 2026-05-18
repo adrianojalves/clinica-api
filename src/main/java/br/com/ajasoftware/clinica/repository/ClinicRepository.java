@@ -20,6 +20,8 @@ public interface ClinicRepository extends JpaRepository<Clinic, Long> {
      */
     boolean existsByCnpj(String cnpj);
 
+    boolean existsByNameIgnoreCase(String name);
+
     /**
      * Retrieves a paginated list of clinics applying dynamic filters (Name or CNPJ).
      */
