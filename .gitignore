@@ -84,6 +84,11 @@ uploads/
 application-dev.properties
 
 # ==========================================
+# Claude Code
+# ==========================================
+CLAUDE.md
+
+# ==========================================
 # Frontend Build (Production)
 # ==========================================
 src/main/resources/static/*
