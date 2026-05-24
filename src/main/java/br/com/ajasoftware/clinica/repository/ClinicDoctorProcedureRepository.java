@@ -43,19 +43,39 @@ public interface ClinicDoctorProcedureRepository extends JpaRepository<ClinicDoc
     );
 
     /**
-     * Dynamic search using SpEL.
-     * Uses JOIN FETCH to optimize performance when loading nested entities for the ResponseDTO.
+     * Dynamic search supporting both ID-based and name-based (LIKE) filters simultaneously.
+     *
+     * Doctor uses LEFT JOIN because the association is nullable — rows without a doctor
+     * must still appear when no doctorName/doctorId filter is active.
+     *
+     * The countQuery mirrors the WHERE clause without JOIN FETCH (not allowed in count queries).
      */
-    @Query(value = "SELECT cdp FROM ClinicDoctorProcedure cdp " +
-            "JOIN FETCH cdp.clinic " +
-            "LEFT JOIN FETCH cdp.doctor " +
-            "JOIN FETCH cdp.medicalProcedure " +
-            "WHERE (:#{#filter.clinicId} IS NULL OR cdp.clinic.id = :#{#filter.clinicId}) AND " +
-            "(:#{#filter.doctorId} IS NULL OR cdp.doctor.id = :#{#filter.doctorId}) AND " +
-            "(:#{#filter.medicalProcedureId} IS NULL OR cdp.medicalProcedure.id = :#{#filter.medicalProcedureId})",
-            countQuery = "SELECT count(cdp) FROM ClinicDoctorProcedure cdp " +
-                    "WHERE (:#{#filter.clinicId} IS NULL OR cdp.clinic.id = :#{#filter.clinicId}) AND " +
-                    "(:#{#filter.doctorId} IS NULL OR cdp.doctor.id = :#{#filter.doctorId}) AND " +
-                    "(:#{#filter.medicalProcedureId} IS NULL OR cdp.medicalProcedure.id = :#{#filter.medicalProcedureId})")
-    Page<ClinicDoctorProcedure> findWithFilters(@Param("filter") ClinicDoctorProcedureFilterDTO filter, Pageable pageable);
+    @Query(value = """
+            SELECT cdp FROM ClinicDoctorProcedure cdp
+            JOIN FETCH cdp.clinic       c
+            LEFT JOIN FETCH cdp.doctor  d
+            JOIN FETCH cdp.medicalProcedure mp
+            WHERE (:#{#filter.clinicId}         IS NULL OR c.id  = :#{#filter.clinicId})
+            AND   (:#{#filter.doctorId}         IS NULL OR d.id  = :#{#filter.doctorId})
+            AND   (:#{#filter.medicalProcedureId} IS NULL OR mp.id = :#{#filter.medicalProcedureId})
+            AND   (:#{#filter.clinicName}     IS NULL OR LOWER(c.name)  LIKE LOWER(CONCAT('%', :#{#filter.clinicName},     '%')))
+            AND   (:#{#filter.doctorName}     IS NULL OR LOWER(d.name)  LIKE LOWER(CONCAT('%', :#{#filter.doctorName},     '%')))
+            AND   (:#{#filter.procedureName}  IS NULL OR LOWER(mp.name) LIKE LOWER(CONCAT('%', :#{#filter.procedureName},  '%')))
+            """,
+            countQuery = """
+            SELECT COUNT(cdp) FROM ClinicDoctorProcedure cdp
+            JOIN      cdp.clinic          c
+            LEFT JOIN cdp.doctor          d
+            JOIN      cdp.medicalProcedure mp
+            WHERE (:#{#filter.clinicId}           IS NULL OR c.id  = :#{#filter.clinicId})
+            AND   (:#{#filter.doctorId}           IS NULL OR d.id  = :#{#filter.doctorId})
+            AND   (:#{#filter.medicalProcedureId} IS NULL OR mp.id = :#{#filter.medicalProcedureId})
+            AND   (:#{#filter.clinicName}     IS NULL OR LOWER(c.name)  LIKE LOWER(CONCAT('%', :#{#filter.clinicName},     '%')))
+            AND   (:#{#filter.doctorName}     IS NULL OR LOWER(d.name)  LIKE LOWER(CONCAT('%', :#{#filter.doctorName},     '%')))
+            AND   (:#{#filter.procedureName}  IS NULL OR LOWER(mp.name) LIKE LOWER(CONCAT('%', :#{#filter.procedureName},  '%')))
+            """)
+    Page<ClinicDoctorProcedure> findWithFilters(
+            @Param("filter") ClinicDoctorProcedureFilterDTO filter,
+            Pageable pageable
+    );
 }
