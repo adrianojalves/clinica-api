@@ -42,7 +42,15 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.GET, "/api/clinica/company/logo").permitAll()
                         .requestMatchers("/error").permitAll()
 
-                        // 2. FRONTEND STATIC RESOURCES & FONTS
+                        // 2. SWAGGER / OPENAPI
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml"
+                        ).permitAll()
+
+                        // 3. FRONTEND STATIC RESOURCES & FONTS
                         .requestMatchers(
                                 "/",
                                 "/index.html",
@@ -62,7 +70,7 @@ public class SecurityConfigurations {
                                 "/media/**"    // Libera tudo dentro de media (fontes e assets)
                         ).permitAll()
 
-                        // 3. PROTECT EVERYTHING ELSE
+                        // 4. PROTECT EVERYTHING ELSE
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
