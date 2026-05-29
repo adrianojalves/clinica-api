@@ -35,7 +35,7 @@ public class ClientController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CADASTROS')")
     public ResponseEntity<ClientResponseDTO> getById(@PathVariable Long id) {
         return ResponseEntity.ok(clientService.getById(id));
     }
@@ -44,7 +44,7 @@ public class ClientController {
      * Write operations restricted to ADMIN or CADASTROS roles.
      */
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'CADASTROS','ATENDIMENTO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CADASTROS')")
     public ResponseEntity<ClientResponseDTO> create(
             @RequestBody @Valid ClientRequestDTO data,
             UriComponentsBuilder uriBuilder) {
@@ -75,7 +75,7 @@ public class ClientController {
     }
 
     @GetMapping("/by-cpf/{cpf}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CADASTROS')")
     public ResponseEntity<ClientResponseDTO> getByCpf(@PathVariable String cpf) {
         return clientService.findByCpf(cpf)
                 .map(ResponseEntity::ok)

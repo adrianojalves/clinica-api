@@ -17,12 +17,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RestController
 @RequestMapping("/api/clinica/clinic-procedures")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'CADASTROS')")
 public class ClinicDoctorProcedureController {
 
     private final ClinicDoctorProcedureService service;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'CADASTROS', 'ATENDIMENTO')")
     public ResponseEntity<Page<ClinicDoctorProcedureResponseDTO>> list(
             ClinicDoctorProcedureFilterDTO filter,
             @PageableDefault(size = 10) Pageable pageable) {
@@ -31,11 +31,13 @@ public class ClinicDoctorProcedureController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CADASTROS')")
     public ResponseEntity<ClinicDoctorProcedureResponseDTO> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.getById(id));
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'CADASTROS')")
     public ResponseEntity<ClinicDoctorProcedureResponseDTO> create(
             @RequestBody @Valid ClinicDoctorProcedureRequestDTO data,
             UriComponentsBuilder uriBuilder) {
@@ -46,6 +48,7 @@ public class ClinicDoctorProcedureController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CADASTROS')")
     public ResponseEntity<ClinicDoctorProcedureResponseDTO> update(
             @PathVariable Long id,
             @RequestBody @Valid ClinicDoctorProcedureRequestDTO data) {
@@ -54,6 +57,7 @@ public class ClinicDoctorProcedureController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CADASTROS')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

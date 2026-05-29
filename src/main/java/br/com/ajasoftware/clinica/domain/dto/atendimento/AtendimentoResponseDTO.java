@@ -2,7 +2,6 @@ package br.com.ajasoftware.clinica.domain.dto.atendimento;
 
 import br.com.ajasoftware.clinica.domain.entity.atendimento.Atendimento;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoStatus;
-import br.com.ajasoftware.clinica.domain.entity.atendimento.TipoPagamento;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -24,13 +23,14 @@ public record AtendimentoResponseDTO(
         String nomeCliente,
         Long codClinica,
         String nomeClinica,
-        TipoPagamento tipoPagamento,
         Integer parcelas,
         AtendimentoStatus status,
         BigDecimal totalTransferValue,
         BigDecimal totalPrice,
         BigDecimal totalTransferValueCard,
-        BigDecimal totalPriceCard
+        BigDecimal totalPriceCard,
+        BigDecimal valorDesconto,
+        BigDecimal valorAcrescimo
 ) {
     public AtendimentoResponseDTO(Atendimento entity) {
         this(
@@ -43,13 +43,14 @@ public record AtendimentoResponseDTO(
                 entity.getCliente().getName(),
                 entity.getClinica().getId(),
                 entity.getClinica().getName(),
-                entity.getTipoPagamento(),
                 entity.getParcelas(),
                 entity.getStatus(),
                 entity.getTotalTransferValue(),
                 entity.getTotalPrice(),
                 entity.getTotalTransferValueCard(),
-                entity.getTotalPriceCard()
+                entity.getTotalPriceCard(),
+                entity.getValorDesconto(),
+                entity.getValorAcrescimo()
         );
     }
 }

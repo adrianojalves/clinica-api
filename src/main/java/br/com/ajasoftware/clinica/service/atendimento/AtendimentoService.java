@@ -5,7 +5,9 @@ import br.com.ajasoftware.clinica.domain.dto.atendimento.AtendimentoRequestDTO;
 import br.com.ajasoftware.clinica.domain.dto.atendimento.AtendimentoResponseDTO;
 import br.com.ajasoftware.clinica.domain.entity.User;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.Atendimento;
+import org.springframework.security.core.context.SecurityContextHolder;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoConsultaExame;
+import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoPagamento;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoStatus;
 import br.com.ajasoftware.clinica.domain.entity.client.Client;
 import br.com.ajasoftware.clinica.domain.entity.clinics.Clinic;
@@ -22,22 +24,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
-/**
- * Service layer for Atendimento (master) management.
- * Delegates total recalculation to {@link AtendimentoTotalsCalculator} (SRP).
- */
 @Service
 @RequiredArgsConstructor
 public class AtendimentoService {
 
     private final AtendimentoRepository atendimentoRepository;
-    private final UserRepository userRepository;
     private final ClientRepository clientRepository;
     private final ClinicRepository clinicRepository;
     private final DoctorRepository doctorRepository;
     private final MedicalProcedureRepository medicalProcedureRepository;
+    private final AtendimentoPagamentoRepository atendimentoPagamentoRepository;
     private final AtendimentoTotalsCalculator totalsCalculator;
 
     // -------------------------------------------------------------------------
@@ -61,6 +61,7 @@ public class AtendimentoService {
     @Transactional
     public AtendimentoResponseDTO create(AtendimentoRequestDTO data) {
         Atendimento atendimento = new Atendimento();
+        atendimento.setUsuario((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         applyHeader(atendimento, data);
         applyItems(atendimento, data.itens());
         totalsCalculator.recalculate(atendimento);
@@ -75,7 +76,6 @@ public class AtendimentoService {
 
         applyHeader(atendimento, data);
 
-        // Clear + re-add: orphanRemoval=true handles DELETE of old rows
         atendimento.getItens().clear();
         applyItems(atendimento, data.itens());
         totalsCalculator.recalculate(atendimento);
@@ -90,37 +90,68 @@ public class AtendimentoService {
         atendimentoRepository.delete(atendimento);
     }
 
+    @Transactional
+    public AtendimentoResponseDTO finalizar(Long id) {
+        Atendimento atendimento = findOrThrow(id);
+        requireAberto(atendimento);
+
+        List<AtendimentoConsultaExame> itens = atendimento.getItens();
+        List<AtendimentoPagamento> pagamentos = atendimentoPagamentoRepository.findByAtendimentoId(id);
+
+        if (!itens.isEmpty() && pagamentos.isEmpty()) {
+            throw new BusinessException(
+                    "É necessário informar pelo menos um pagamento para finalizar o atendimento com procedimentos.");
+        }
+
+        BigDecimal totalItens = itens.stream()
+                .map(i -> i.getPrice() != null ? i.getPrice() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalDescontos = pagamentos.stream()
+                .map(p -> p.getValorDesconto() != null ? p.getValorDesconto() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (totalDescontos.compareTo(BigDecimal.ZERO) > 0 && totalItens.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal percentualMax = atendimento.getUsuario().getPercentutalDesconto();
+            if (percentualMax == null) percentualMax = BigDecimal.ZERO;
+
+            BigDecimal percentualAplicado = totalDescontos
+                    .multiply(new BigDecimal("100"))
+                    .divide(totalItens, 2, RoundingMode.HALF_UP);
+
+            if (percentualAplicado.compareTo(percentualMax) > 0) {
+                throw new BusinessException(
+                        "O desconto aplicado (" + percentualAplicado + "%) excede o limite permitido para o usuário (" + percentualMax + "%).");
+            }
+        }
+
+        totalsCalculator.recalculateWithPayments(atendimento, pagamentos);
+        atendimento.setStatus(AtendimentoStatus.ENCAMINHADO);
+        atendimentoRepository.save(atendimento);
+
+        return new AtendimentoResponseDTO(atendimento);
+    }
+
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
 
-    /**
-     * Maps header fields from the DTO onto the entity, resolving all FK references.
-     */
     private void applyHeader(Atendimento atendimento, AtendimentoRequestDTO data) {
-        User usuario = userRepository.findById(data.codUsuario())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
         Client cliente = clientRepository.findById(data.codCliente())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado."));
         Clinic clinica = clinicRepository.findById(data.codClinica())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Clínica não encontrada."));
 
-        atendimento.setUsuario(usuario);
         atendimento.setDataConsultaExame(data.dataConsultaExame());
         atendimento.setCliente(cliente);
         atendimento.setClinica(clinica);
-        atendimento.setTipoPagamento(data.tipoPagamento());
         atendimento.setParcelas(data.parcelas());
     }
 
-    /**
-     * Builds and attaches item entities from the DTO list onto the given Atendimento.
-     * Assumes the items collection is empty before this call (either brand-new or cleared for update).
-     */
     private void applyItems(Atendimento atendimento, List<AtendimentoConsultaExameRequestDTO> itemDtos) {
         for (AtendimentoConsultaExameRequestDTO dto : itemDtos) {
             Doctor doctor = null;
-            if (dto.codMedico() != null && dto.codMedico()!=0) {
+            if (dto.codMedico() != null && dto.codMedico() != 0) {
                 doctor = doctorRepository.findById(dto.codMedico())
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                                 "Médico não encontrado: id=" + dto.codMedico()));
@@ -143,9 +174,6 @@ public class AtendimentoService {
         }
     }
 
-    /**
-     * Guards any write operation: throws BusinessException if the Atendimento is not ABERTO.
-     */
     private void requireAberto(Atendimento atendimento) {
         if (atendimento.getStatus() != AtendimentoStatus.ABERTO) {
             throw new BusinessException(

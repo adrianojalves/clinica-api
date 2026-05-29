@@ -15,10 +15,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Represents an Atendimento (Service/Appointment) in the system.
- * This is the master entity of the Atendimento Master-Detail relationship.
- */
 @Entity
 @Table(name = "table_atendimento")
 @Getter
@@ -49,10 +45,6 @@ public class Atendimento {
     @JoinColumn(name = "clinica_id", nullable = false)
     private Clinic clinica;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_pagamento", nullable = false, length = 20)
-    private TipoPagamento tipoPagamento;
-
     @Column(nullable = false)
     private Integer parcelas;
 
@@ -71,6 +63,12 @@ public class Atendimento {
 
     @Column(name = "total_price_card", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalPriceCard;
+
+    @Column(name = "valor_desconto", nullable = false, precision = 10, scale = 2)
+    private BigDecimal valorDesconto = BigDecimal.ZERO;
+
+    @Column(name = "valor_acrescimo", nullable = false, precision = 10, scale = 2)
+    private BigDecimal valorAcrescimo = BigDecimal.ZERO;
 
     @OneToMany(mappedBy = "atendimento", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<AtendimentoConsultaExame> itens = new ArrayList<>();
