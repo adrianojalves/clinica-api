@@ -20,10 +20,10 @@ public class Company {
     private Long id;
 
     @Column(name = "corporate_name")
-    private String corporateName; // Razão Social
+    private String corporateName; // Legal name
 
     @Column(name = "trade_name")
-    private String tradeName; // Nome Fantasia
+    private String tradeName; // Trade name
 
     private String cnpj;
     private String phone;

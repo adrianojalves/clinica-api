@@ -58,16 +58,16 @@ public class SecurityConfigurations {
                                 "/*.css",
                                 "/*.ico",
                                 "/*.png",
-                                "/*.jpg",      // Adicionado para sua logo.jpg
+                                "/*.jpg",      // Added for logo.jpg
                                 "/*.jpeg",
-                                "/*.svg",      // Adicionado para ícones em SVG
-                                "/**.woff",    // Fontes na raiz
+                                "/*.svg",      // Added for SVG icons
+                                "/**.woff",    // Fonts in the root
                                 "/**.woff2",
                                 "/**.ttf",
-                                "/**.eot",     // Adicionado para compatibilidade de fontes
+                                "/**.eot",     // Added for font compatibility
                                 "/assets/**",
                                 "/images/**",
-                                "/media/**"    // Libera tudo dentro de media (fontes e assets)
+                                "/media/**"    // Allows everything inside media (fonts and assets)
                         ).permitAll()
 
                         // 4. PROTECT EVERYTHING ELSE

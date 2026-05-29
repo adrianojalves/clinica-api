@@ -25,7 +25,7 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Aplica a lista dinâmica de origens configurada externamente
+        // Applies the dynamic list of allowed origins configured externally
         config.setAllowedOrigins(allowedOrigins);
 
         config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization"));

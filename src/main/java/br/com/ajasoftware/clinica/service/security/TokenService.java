@@ -93,7 +93,7 @@ public class TokenService {
                     .getSubject();
 
         } catch (TokenExpiredException exception) {
-            // Se o erro for especificamente de expiração, lançamos para o Filter pegar e dar 401
+            // Rethrow expiration specifically so the Filter can respond with 401
             throw exception;
 
         }
@@ -121,8 +121,7 @@ public class TokenService {
                     .getSubject();
 
         } catch (JWTVerificationException exception) {
-            // Em caso de Refresh Token inválido ou expirado, lançamos a exceção
-            // para o Controller avisar o Angular que o usuário precisa logar de novo.
+            // Invalid or expired refresh token — throw so the controller can signal the frontend to re-authenticate
             throw new RuntimeException("Sessão expirada ou token de atualização inválido. Por favor, faça login novamente.");
         }
     }

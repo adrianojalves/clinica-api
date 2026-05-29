@@ -19,7 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
 @RequestMapping("/api/clinica/doctors")
-@RequiredArgsConstructor // O Lombok gera o construtor injetando o DoctorService automaticamente
+@RequiredArgsConstructor // Lombok generates the constructor injecting DoctorService automatically
 @PreAuthorize("hasAnyRole('ADMIN', 'CADASTROS')")
 public class DoctorController {
 
