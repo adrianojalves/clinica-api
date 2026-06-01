@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <!--
+        Fragment: base-styles
+        CSS compartilhado por todos os relatórios A5 Portrait (encaminhamento, recibo).
+        Inclui: configuração @page, reset, tipografia, estilos do cabeçalho/rodapé
+        correndo, tabela de procedimentos base e utilitários de layout flex.
+    -->
+    <th:block th:fragment="base-styles">
+        <style>
+            /* -------------------------------------------------------------- */
+            /* Configuração de página – A5 Portrait                            */
+            /* -------------------------------------------------------------- */
+            @page {
+                size: A5 portrait;
+                margin: 38mm 12mm 18mm 12mm;
+
+                @top-center {
+                    content: element(page-header);
+                    width: 100%;
+                }
+                @bottom-center {
+                    content: element(page-footer);
+                    width: 100%;
+                }
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 9pt;
+                color: #2D3748;
+                line-height: 1.4;
+            }
+
+            /* -------------------------------------------------------------- */
+            /* Cabeçalho corrente (running element – aparece em todas as págs) */
+            /* -------------------------------------------------------------- */
+            #page-header {
+                position: running(page-header);
+                width: 100%;
+                border-bottom: 2px solid #009B8E;
+                padding-bottom: 3mm;
+            }
+
+            .header-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .header-logo-cell {
+                width: 28mm;
+                vertical-align: middle;
+                padding-right: 4mm;
+            }
+
+            .header-logo-img {
+                max-width: 26mm;
+                max-height: 22mm;
+            }
+
+            .header-logo-placeholder {
+                width: 26mm;
+                height: 22mm;
+                background-color: #F4F7F8;
+                border: 1px solid #CBD5E0;
+            }
+
+            .header-info-cell {
+                vertical-align: middle;
+                text-align: center;
+            }
+
+            .header-company-name {
+                font-size: 13pt;
+                font-weight: bold;
+                color: #005293;
+                display: block;
+            }
+
+            .header-cnpj {
+                font-size: 9pt;
+                color: #2D3748;
+                display: block;
+                margin-top: 1mm;
+            }
+
+            .header-contact {
+                font-size: 8pt;
+                color: #718096;
+                display: block;
+                margin-top: 1mm;
+            }
+
+            .header-address {
+                font-size: 7.5pt;
+                color: #718096;
+                display: block;
+                margin-top: 1mm;
+            }
+
+            /* -------------------------------------------------------------- */
+            /* Rodapé corrente (running element – aparece em todas as págs)    */
+            /* -------------------------------------------------------------- */
+            #page-footer {
+                position: running(page-footer);
+                font-size: 7.5pt;
+                color: #718096;
+                white-space: nowrap;
+                border-top: 0.5pt solid #CBD5E0;
+                padding-top: 1.5mm;
+                width: 100%;
+                display: table;
+            }
+
+            .footer-left {
+                display: table-cell;
+                text-align: left;
+            }
+
+            .footer-right {
+                display: table-cell;
+                text-align: right;
+            }
+
+            .footer-orcamento {
+                font-weight: bold;
+                color: #C53030;
+                margin-right: 4mm;
+            }
+
+            /* -------------------------------------------------------------- */
+            /* Tabela de procedimentos (estrutura compartilhada)               */
+            /* -------------------------------------------------------------- */
+            .procedures-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 8.5pt;
+            }
+
+            .procedures-table thead tr {
+                background-color: #005293;
+                color: #ffffff;
+            }
+
+            .procedures-table thead th {
+                padding: 2mm 3mm;
+                text-align: left;
+                font-weight: bold;
+            }
+
+            .procedures-table tbody tr:nth-child(even) {
+                background-color: #F4F7F8;
+            }
+
+            .procedures-table tbody td {
+                padding: 2mm 3mm;
+                border-bottom: 1px solid #CBD5E0;
+                vertical-align: top;
+            }
+
+            .procedures-table tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+            /* -------------------------------------------------------------- */
+            /* Layout flex – empurra conteúdo final para o rodapé             */
+            /* -------------------------------------------------------------- */
+            .content-wrapper {
+                display: -webkit-flex;
+                display: flex;
+                -webkit-flex-direction: column;
+                flex-direction: column;
+                min-height: 148mm;
+            }
+
+            .content-spacer {
+                -webkit-flex: 1;
+                flex: 1;
+                min-height: 8mm;
+            }
+
+            /* -------------------------------------------------------------- */
+            /* Utilitário compartilhado                                        */
+            /* -------------------------------------------------------------- */
+            .section-label {
+                font-size: 8pt;
+                font-weight: bold;
+                color: #718096;
+                margin-bottom: 2mm;
+                text-transform: uppercase;
+                letter-spacing: 0.3pt;
+            }
+        </style>
+    </th:block>
+
+</head>
+<body>
+
+    <!--
+        Fragment: page-header
+        Cabeçalho com logo (esquerda) e dados da empresa (direita/centro).
+        Utiliza as variáveis de contexto: ${logoBase64}, ${company}.
+    -->
+    <div id="page-header" th:fragment="page-header">
+        <table class="header-table">
+            <tr>
+                <td class="header-logo-cell">
+                    <img th:if="${logoBase64 != null}"
+                         th:src="${logoBase64}"
+                         alt="Logo"
+                         class="header-logo-img"/>
+                    <div th:if="${logoBase64 == null}" class="header-logo-placeholder"></div>
+                </td>
+                <td class="header-info-cell">
+                    <span class="header-company-name"
+                          th:text="${company != null ? company.corporateName : 'Empresa não configurada'}">
+                        Empresa
+                    </span>
+                    <span class="header-cnpj"
+                          th:if="${company != null and company.cnpj != null}"
+                          th:text="${'CNPJ: ' + company.cnpj}">
+                        CNPJ: 00.000.000/0000-00
+                    </span>
+                    <span class="header-contact" th:if="${company != null}">
+                        <th:block th:if="${company.phone != null}"
+                                  th:text="${company.phone}">Fone</th:block>
+                        <th:block th:if="${company.phone != null and company.email != null}"> &#160;|&#160; </th:block>
+                        <th:block th:if="${company.email != null}"
+                                  th:text="${company.email}">Email</th:block>
+                    </span>
+                    <span class="header-address"
+                          th:if="${company != null
+                                  and company.address != null
+                                  and company.address.logradouro != null}">
+                        <th:block th:text="${company.address.logradouro}"></th:block><th:block th:if="${company.address.numero != null}">, <th:block th:text="${company.address.numero}"></th:block></th:block><th:block th:if="${company.address.bairro != null}"> - <th:block th:text="${company.address.bairro}"></th:block></th:block><th:block th:if="${company.address.cidade != null}">, <th:block th:text="${company.address.cidade}"></th:block></th:block><th:block th:if="${company.address.uf != null}">/<th:block th:text="${company.address.uf}"></th:block></th:block><th:block th:if="${company.address.cep != null}"> – CEP: <th:block th:text="${company.address.cep}"></th:block></th:block>
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!--
+        Fragment: page-footer
+        Rodapé corrente. Exibe "ORÇAMENTO" em vermelho quando ${isOrcamento} for true
+        (variável presente apenas no encaminhamento; ausente no recibo → não renderiza).
+        Utiliza as variáveis de contexto: ${isOrcamento}, ${printedAt}.
+    -->
+    <div id="page-footer" th:fragment="page-footer">
+        <span class="footer-left"
+              th:text="${usuario != null ? usuario.name : ''}">Atendente</span>
+        <span class="footer-right">
+            <span class="footer-orcamento"
+                  th:if="${isOrcamento != null and isOrcamento}">ORÇAMENTO</span>
+            <span th:text="${#temporals.format(printedAt, 'dd/MM/yyyy HH:mm')}">00/00/0000 00:00</span>
+        </span>
+    </div>
+
+</body>
+</html>

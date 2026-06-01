@@ -95,6 +95,19 @@
 			<version>2.8.6</version>
 		</dependency>
 
+		<!-- Thymeleaf (programmatic PDF template engine) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+
+		<!-- OpenHTMLtoPDF (Thymeleaf HTML → PDF via PDFBox) -->
+		<dependency>
+			<groupId>com.openhtmltopdf</groupId>
+			<artifactId>openhtmltopdf-pdfbox</artifactId>
+			<version>1.0.10</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

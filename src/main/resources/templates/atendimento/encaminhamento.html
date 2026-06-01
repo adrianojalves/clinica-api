@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Relatório de Encaminhamento</title>
+
+    <!-- CSS compartilhado (página A5, cabeçalho/rodapé, tabela, flex) -->
+    <th:block th:replace="~{atendimento/report-common :: base-styles}"></th:block>
+
+    <!-- Estilos específicos do relatório de encaminhamento -->
+    <style>
+        .report-title {
+            text-align: center;
+            font-size: 12pt;
+            font-weight: bold;
+            color: #005293;
+            margin-bottom: 5mm;
+            padding-bottom: 2mm;
+            border-bottom: 1px solid #CBD5E0;
+        }
+
+        .master-section {
+            margin-bottom: 4mm;
+        }
+
+        .master-row {
+            display: table;
+            width: 100%;
+            margin-bottom: 1.5mm;
+        }
+
+        .master-label {
+            display: table-cell;
+            width: 32mm;
+            font-weight: bold;
+            color: #718096;
+            font-size: 8pt;
+            vertical-align: top;
+        }
+
+        .master-value {
+            display: table-cell;
+            color: #2D3748;
+            font-size: 9pt;
+            vertical-align: top;
+        }
+
+        .master-divider {
+            border: none;
+            border-top: 1px solid #CBD5E0;
+            margin: 3mm 0;
+        }
+
+        .procedures-title {
+            font-size: 9pt;
+            font-weight: bold;
+            color: #005293;
+            margin-bottom: 2mm;
+            margin-top: 2mm;
+        }
+
+        .col-descricao { width: 65%; }
+        .col-medico    { width: 35%; }
+
+        .observation-section {
+            border-top: 1px solid #CBD5E0;
+            padding-top: 2mm;
+            margin-top: 2mm;
+        }
+
+        .observation-label {
+            font-size: 8pt;
+            font-weight: bold;
+            color: #718096;
+            margin-bottom: 3mm;
+        }
+
+        .obs-line {
+            border-bottom: 1px solid #CBD5E0;
+            margin-bottom: 6mm;
+            height: 6mm;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cabeçalho corrente compartilhado -->
+    <div th:replace="~{atendimento/report-common :: page-header}"></div>
+
+    <!-- Rodapé corrente compartilhado (exibe ORÇAMENTO quando ${isOrcamento} = true) -->
+    <div th:replace="~{atendimento/report-common :: page-footer}"></div>
+
+    <!-- ================================================================= -->
+    <!-- CONTEÚDO PRINCIPAL                                                  -->
+    <!-- ================================================================= -->
+    <div class="content-wrapper">
+        <div>
+
+            <div class="report-title">Relatório de Encaminhamento</div>
+
+            <!-- Dados master -->
+            <div class="master-section">
+
+                <div class="master-row">
+                    <span class="master-label">Cliente:</span>
+                    <span class="master-value"
+                          th:text="${atendimento.cliente.name}">—</span>
+                </div>
+
+                <div class="master-row">
+                    <span class="master-label">Clínica:</span>
+                    <span class="master-value">
+                        <th:block th:text="${atendimento.clinica.name}">—</th:block>
+                        <th:block th:if="${atendimento.clinica.cnpj != null}"
+                                  th:text="${' – CNPJ: ' + atendimento.clinica.cnpj}"></th:block>
+                    </span>
+                </div>
+
+                <div class="master-row"
+                     th:if="${atendimento.clinica.address != null
+                             and atendimento.clinica.address.logradouro != null}">
+                    <span class="master-label">End. Clínica:</span>
+                    <span class="master-value">
+                        <th:block th:text="${atendimento.clinica.address.logradouro}"></th:block><th:block th:if="${atendimento.clinica.address.numero != null}">, <th:block th:text="${atendimento.clinica.address.numero}"></th:block></th:block><th:block th:if="${atendimento.clinica.address.bairro != null}"> - <th:block th:text="${atendimento.clinica.address.bairro}"></th:block></th:block><th:block th:if="${atendimento.clinica.address.cidade != null}">, <th:block th:text="${atendimento.clinica.address.cidade}"></th:block></th:block><th:block th:if="${atendimento.clinica.address.uf != null}">/<th:block th:text="${atendimento.clinica.address.uf}"></th:block></th:block><th:block th:if="${atendimento.clinica.address.cep != null}"> – CEP: <th:block th:text="${atendimento.clinica.address.cep}"></th:block></th:block>
+                    </span>
+                </div>
+
+                <hr class="master-divider"/>
+
+                <div class="master-row">
+                    <span class="master-label">Data de Emissão:</span>
+                    <span class="master-value" style="width:30%;"
+                          th:text="${#temporals.format(atendimento.dataEmissao, 'dd/MM/yyyy')}">—</span>
+                    <span class="master-label">Data da Consulta:</span>
+                    <span class="master-value"
+                          th:text="${#temporals.format(atendimento.dataConsultaExame, 'dd/MM/yyyy')}">—</span>
+                </div>
+
+            </div>
+
+            <!-- Tabela de procedimentos -->
+            <div class="procedures-title">Procedimentos</div>
+            <table class="procedures-table">
+                <thead>
+                    <tr>
+                        <th class="col-descricao">Descrição</th>
+                        <th class="col-medico">Médico</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${atendimento.itens}">
+                        <td class="col-descricao"
+                            th:text="${item.medicalProcedure.name}">—</td>
+                        <td class="col-medico"
+                            th:text="${item.doctor != null ? item.doctor.name : '—'}">—</td>
+                    </tr>
+                    <tr th:if="${atendimento.itens.isEmpty()}">
+                        <td colspan="2"
+                            style="text-align:center; color:#718096; font-style:italic;">
+                            Nenhum procedimento informado.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+        <!-- Espaçador empurra o campo de observação para o rodapé -->
+        <div class="content-spacer"></div>
+
+        <!-- Campo de observação -->
+        <div class="observation-section">
+            <div class="observation-label">Observações:</div>
+            <div class="obs-line"></div>
+            <div class="obs-line"></div>
+            <div class="obs-line"></div>
+            <div class="obs-line"></div>
+        </div>
+
+    </div>
+
+</body>
+</html>

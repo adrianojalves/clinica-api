@@ -3,6 +3,7 @@ package br.com.ajasoftware.clinica.controller.atendimento;
 import br.com.ajasoftware.clinica.domain.dto.atendimento.AtendimentoRequestDTO;
 import br.com.ajasoftware.clinica.domain.dto.atendimento.AtendimentoResponseDTO;
 import br.com.ajasoftware.clinica.domain.filter.atendimento.AtendimentoFilter;
+import br.com.ajasoftware.clinica.service.atendimento.AtendimentoReportService;
 import br.com.ajasoftware.clinica.service.atendimento.AtendimentoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +25,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class AtendimentoController {
 
     private final AtendimentoService service;
+    private final AtendimentoReportService reportService;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'CADASTROS', 'ATENDIMENTO')")
@@ -76,5 +80,25 @@ public class AtendimentoController {
     @PreAuthorize("hasAnyRole('ADMIN', 'CADASTROS', 'ATENDIMENTO')")
     public ResponseEntity<AtendimentoResponseDTO> finalizar(@PathVariable Long id) {
         return ResponseEntity.ok(service.finalizar(id));
+    }
+
+    @GetMapping("/{id}/encaminhamento")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CADASTROS', 'ATENDIMENTO')")
+    public ResponseEntity<byte[]> encaminhamento(@PathVariable Long id) {
+        byte[] pdf = reportService.generateEncaminhamento(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=encaminhamento-" + id + ".pdf")
+                .body(pdf);
+    }
+
+    @GetMapping("/{id}/recibo")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CADASTROS', 'ATENDIMENTO')")
+    public ResponseEntity<byte[]> recibo(@PathVariable Long id) {
+        byte[] pdf = reportService.generateRecibo(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=recibo-" + id + ".pdf")
+                .body(pdf);
     }
 }

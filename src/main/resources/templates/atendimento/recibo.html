@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Recibo</title>
+
+    <!-- CSS compartilhado (página A5, cabeçalho/rodapé, tabela, flex) -->
+    <th:block th:replace="~{atendimento/report-common :: base-styles}"></th:block>
+
+    <!-- Estilos específicos do recibo -->
+    <style>
+        .report-title {
+            text-align: center;
+            font-size: 13pt;
+            font-weight: bold;
+            color: #005293;
+            margin-bottom: 4mm;
+            padding-bottom: 2mm;
+            border-bottom: 1px solid #CBD5E0;
+        }
+
+        .client-section {
+            margin-bottom: 4mm;
+            padding-bottom: 3mm;
+            border-bottom: 1px solid #CBD5E0;
+        }
+
+        .client-name {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #2D3748;
+        }
+
+        .client-cpf {
+            font-size: 8.5pt;
+            color: #718096;
+            margin-top: 1mm;
+        }
+
+        .payments-section {
+            margin-bottom: 4mm;
+        }
+
+        .payment-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .payment-item {
+            display: table;
+            width: 100%;
+            font-size: 8.5pt;
+            padding: 1mm 0;
+            border-bottom: 1px solid #F4F7F8;
+        }
+
+        .payment-type     { display: table-cell; color: #2D3748; }
+        .payment-parcelas { display: table-cell; color: #718096; font-size: 8pt; text-align: center; }
+        .payment-value    { display: table-cell; text-align: right; font-weight: bold; color: #005293; }
+
+        .procedures-table thead th.col-valor { text-align: right; }
+        .col-nome  { width: 70%; }
+        .col-valor { width: 30%; text-align: right; }
+
+        .total-row {
+            display: table;
+            width: 100%;
+            border-top: 2px solid #005293;
+            padding-top: 2mm;
+            margin-top: 1mm;
+        }
+
+        .total-label {
+            display: table-cell;
+            font-weight: bold;
+            font-size: 9pt;
+            color: #005293;
+        }
+
+        .total-value {
+            display: table-cell;
+            text-align: right;
+            font-weight: bold;
+            font-size: 10pt;
+            color: #005293;
+        }
+
+        .signature-section {
+            margin-top: 4mm;
+            padding-top: 3mm;
+            border-top: 1px solid #CBD5E0;
+        }
+
+        .signature-line {
+            border-top: 1px solid #2D3748;
+            margin: 12mm auto 0;
+            width: 65%;
+        }
+
+        .signature-caption {
+            text-align: center;
+            font-size: 7.5pt;
+            color: #718096;
+            margin-top: 2mm;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cabeçalho corrente compartilhado -->
+    <div th:replace="~{atendimento/report-common :: page-header}"></div>
+
+    <!-- Rodapé corrente compartilhado (${isOrcamento} não existe no recibo → não exibe o badge) -->
+    <div th:replace="~{atendimento/report-common :: page-footer}"></div>
+
+    <!-- ================================================================= -->
+    <!-- CONTEÚDO PRINCIPAL                                                  -->
+    <!-- ================================================================= -->
+    <div class="content-wrapper">
+        <div>
+
+            <div class="report-title">Recibo</div>
+
+            <!-- Dados do cliente -->
+            <div class="client-section">
+                <div class="client-name"
+                     th:text="${atendimento.cliente.name}">—</div>
+                <div class="client-cpf"
+                     th:if="${atendimento.cliente.cpf != null
+                             and !#strings.isEmpty(atendimento.cliente.cpf)}"
+                     th:text="${'CPF: ' + atendimento.cliente.cpf}">CPF: —</div>
+            </div>
+
+            <!-- Formas de pagamento -->
+            <div class="payments-section" th:if="${!pagamentos.isEmpty()}">
+                <div class="section-label">Formas de Pagamento</div>
+                <ul class="payment-list">
+                    <li class="payment-item" th:each="pag : ${pagamentos}">
+                        <span class="payment-type">
+                            <th:block th:switch="${pag.tipoPagamento.name()}">
+                                <span th:case="'DINHEIRO'">Dinheiro</span>
+                                <span th:case="'CARTAO_CREDITO'">Cartão de Crédito</span>
+                                <span th:case="'CARTAO_DEBITO'">Cartão de Débito</span>
+                                <span th:case="'PIX'">PIX</span>
+                                <span th:case="*" th:text="${pag.tipoPagamento.name()}"></span>
+                            </th:block>
+                        </span>
+                        <span class="payment-parcelas"
+                              th:if="${pag.parcelas != null and pag.parcelas > 1}"
+                              th:text="${pag.parcelas + 'x'}">1x</span>
+                        <span class="payment-parcelas"
+                              th:if="${pag.parcelas == null or pag.parcelas <= 1}"></span>
+                        <span class="payment-value"
+                              th:text="${'R$ ' + #numbers.formatDecimal(pag.valor, 1, 'POINT', 2, 'COMMA')}">
+                            R$ 0,00
+                        </span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Tabela de procedimentos -->
+            <div class="section-label" style="margin-bottom:2mm;">Procedimentos</div>
+            <table class="procedures-table">
+                <thead>
+                    <tr>
+                        <th class="col-nome">Procedimento</th>
+                        <th class="col-valor">Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${atendimento.itens}">
+                        <td class="col-nome"
+                            th:text="${item.medicalProcedure.name}">—</td>
+                        <td class="col-valor"
+                            th:text="${'R$ ' + #numbers.formatDecimal(
+                                        hasCardPayment ? item.priceCard : item.price,
+                                        1, 'POINT', 2, 'COMMA')}">
+                            R$ 0,00
+                        </td>
+                    </tr>
+                    <tr th:if="${atendimento.itens.isEmpty()}">
+                        <td colspan="2"
+                            style="text-align:center; color:#718096; font-style:italic;">
+                            Nenhum procedimento informado.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Total -->
+            <div class="total-row">
+                <span class="total-label">Total</span>
+                <span class="total-value"
+                      th:text="${'R$ ' + #numbers.formatDecimal(total, 1, 'POINT', 2, 'COMMA')}">
+                    R$ 0,00
+                </span>
+            </div>
+
+        </div>
+
+        <!-- Espaçador empurra a linha de assinatura para o rodapé -->
+        <div class="content-spacer"></div>
+
+        <!-- Assinatura -->
+        <div class="signature-section">
+            <div class="signature-line"></div>
+            <div class="signature-caption"
+                 th:text="${atendimento.cliente.name + ' – Assinatura do(a) Paciente'}">
+                Assinatura do Paciente
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
