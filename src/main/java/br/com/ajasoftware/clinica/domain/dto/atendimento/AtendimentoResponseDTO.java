@@ -2,6 +2,7 @@ package br.com.ajasoftware.clinica.domain.dto.atendimento;
 
 import br.com.ajasoftware.clinica.domain.entity.atendimento.Atendimento;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoStatus;
+import br.com.ajasoftware.clinica.domain.entity.atendimento.TurnoAtendimento;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,6 +20,8 @@ public record AtendimentoResponseDTO(
         Long codUsuario,
         String nomeUsuario,
         LocalDate dataConsultaExame,
+        TurnoAtendimento turno,
+        String observacao,
         Long codCliente,
         String nomeCliente,
         Long codClinica,
@@ -39,6 +42,8 @@ public record AtendimentoResponseDTO(
                 entity.getUsuario().getId(),
                 entity.getUsuario().getName(),
                 entity.getDataConsultaExame(),
+                entity.getTurno(),
+                entity.getObservacao(),
                 entity.getCliente().getId(),
                 entity.getCliente().getName(),
                 entity.getClinica().getId(),

@@ -75,11 +75,6 @@
             margin-bottom: 3mm;
         }
 
-        .obs-line {
-            border-bottom: 1px solid #CBD5E0;
-            margin-bottom: 6mm;
-            height: 6mm;
-        }
     </style>
 </head>
 <body>
@@ -132,14 +127,25 @@
                     <span class="master-value" style="width:30%;"
                           th:text="${#temporals.format(atendimento.dataEmissao, 'dd/MM/yyyy')}">—</span>
                     <span class="master-label">Data da Consulta:</span>
-                    <span class="master-value"
-                          th:text="${#temporals.format(atendimento.dataConsultaExame, 'dd/MM/yyyy')}">—</span>
+                    <span class="master-value">
+                        <th:block th:if="${atendimento.dataConsultaExame != null}"
+                                  th:text="${#temporals.format(atendimento.dataConsultaExame, 'dd/MM/yyyy')}">—</th:block>
+                        <th:block th:if="${atendimento.dataConsultaExame == null}">—</th:block>
+                        <th:block th:if="${atendimento.turno != null}">
+                            <span style="margin-left:3mm; color:#718096; font-size:8pt;"
+                                  th:switch="${atendimento.turno.name()}">
+                                <span th:case="'MATUTINO'">(Matutino)</span>
+                                <span th:case="'VESPERTINO'">(Vespertino)</span>
+                                <span th:case="'NOTURNO'">(Noturno)</span>
+                            </span>
+                        </th:block>
+                    </span>
                 </div>
 
             </div>
 
             <!-- Tabela de procedimentos -->
-            <div class="procedures-title">Procedimentos</div>
+            <div class="procedures-title">Procedimento/Consulta/Exame</div>
             <table class="procedures-table">
                 <thead>
                     <tr>
@@ -169,12 +175,11 @@
         <div class="content-spacer"></div>
 
         <!-- Campo de observação -->
-        <div class="observation-section">
+        <div class="observation-section"
+             th:if="${atendimento.observacao != null and !#strings.isEmpty(atendimento.observacao)}">
             <div class="observation-label">Observações:</div>
-            <div class="obs-line"></div>
-            <div class="obs-line"></div>
-            <div class="obs-line"></div>
-            <div class="obs-line"></div>
+            <div style="font-size:8.5pt; color:#2D3748; white-space:pre-line;"
+                 th:text="${atendimento.observacao}"></div>
         </div>
 
     </div>

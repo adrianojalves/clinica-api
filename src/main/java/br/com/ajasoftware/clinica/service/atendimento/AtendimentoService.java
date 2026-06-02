@@ -143,6 +143,8 @@ public class AtendimentoService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Clínica não encontrada."));
 
         atendimento.setDataConsultaExame(data.dataConsultaExame());
+        atendimento.setTurno(data.turno());
+        atendimento.setObservacao(data.observacao());
         atendimento.setCliente(cliente);
         atendimento.setClinica(clinica);
         atendimento.setParcelas(data.parcelas());

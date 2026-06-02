@@ -20,6 +20,8 @@ public interface AtendimentoRepository extends JpaRepository<Atendimento, Long> 
                 a.usuario.id,
                 a.usuario.name,
                 a.dataConsultaExame,
+                a.turno,
+                a.observacao,
                 a.cliente.id,
                 a.cliente.name,
                 a.clinica.id,

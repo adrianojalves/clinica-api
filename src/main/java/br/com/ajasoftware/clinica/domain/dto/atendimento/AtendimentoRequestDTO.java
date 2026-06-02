@@ -1,5 +1,6 @@
 package br.com.ajasoftware.clinica.domain.dto.atendimento;
 
+import br.com.ajasoftware.clinica.domain.entity.atendimento.TurnoAtendimento;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
@@ -10,8 +11,11 @@ import java.util.List;
 
 public record AtendimentoRequestDTO(
 
-        @NotNull(message = "A data da consulta/exame é obrigatória.")
         LocalDate dataConsultaExame,
+
+        TurnoAtendimento turno,
+
+        String observacao,
 
         @NotNull(message = "O cliente é obrigatório.")
         Long codCliente,

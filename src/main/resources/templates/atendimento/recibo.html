@@ -205,8 +205,8 @@
         <div class="signature-section">
             <div class="signature-line"></div>
             <div class="signature-caption"
-                 th:text="${atendimento.cliente.name + ' – Assinatura do(a) Paciente'}">
-                Assinatura do Paciente
+                 th:text="${(company != null and company.tradeName != null) ? company.tradeName : 'Assinatura'}">
+                Assinatura
             </div>
         </div>
 

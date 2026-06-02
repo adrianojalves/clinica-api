@@ -34,8 +34,15 @@ public class Atendimento {
     @JoinColumn(name = "usuario_id", nullable = false)
     private User usuario;
 
-    @Column(name = "data_consulta_exame", nullable = false)
+    @Column(name = "data_consulta_exame")
     private LocalDate dataConsultaExame;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "turno", length = 20)
+    private TurnoAtendimento turno;
+
+    @Column(name = "observacao", columnDefinition = "TEXT")
+    private String observacao;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id", nullable = false)
