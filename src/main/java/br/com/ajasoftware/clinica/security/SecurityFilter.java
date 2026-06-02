@@ -81,7 +81,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 
         return path.startsWith("/api/auth/")
                 || path.equals("/error")
-                || path.equals("/api/clinica/company/logo")
+                || (path.equals("/api/clinica/company/logo") && "GET".equalsIgnoreCase(request.getMethod()))
                 || path.startsWith("/assets/")
                 || path.startsWith("/images/")
                 || path.startsWith("/media/")
