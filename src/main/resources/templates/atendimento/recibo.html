@@ -173,7 +173,9 @@
                             th:text="${item.medicalProcedure.name}">—</td>
                         <td class="col-valor"
                             th:text="${'R$ ' + #numbers.formatDecimal(
-                                        hasCardPayment ? item.priceCard : item.price,
+                                        (hasCardPayment and item.priceCard != null and item.priceCard.signum() != 0)
+                                            ? item.priceCard
+                                            : item.price,
                                         1, 'POINT', 2, 'COMMA')}">
                             R$ 0,00
                         </td>

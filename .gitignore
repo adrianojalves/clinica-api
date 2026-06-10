@@ -93,3 +93,5 @@ CLAUDE.md
 # ==========================================
 src/main/resources/static/*
 !src/main/resources/static/.gitkeep
+
+arquivos_uteis/

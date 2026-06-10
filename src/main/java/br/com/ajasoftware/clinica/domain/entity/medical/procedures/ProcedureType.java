@@ -5,5 +5,7 @@ package br.com.ajasoftware.clinica.domain.entity.medical.procedures;
  */
 public enum ProcedureType {
     EXAME,
-    CONSULTA
+    CONSULTA,
+    CIRURGIA,
+    MEDICACAO
 }

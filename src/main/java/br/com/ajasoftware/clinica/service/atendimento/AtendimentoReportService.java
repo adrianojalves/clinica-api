@@ -2,6 +2,7 @@ package br.com.ajasoftware.clinica.service.atendimento;
 
 import br.com.ajasoftware.clinica.domain.entity.User;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.Atendimento;
+import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoConsultaExame;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoPagamento;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoStatus;
 import br.com.ajasoftware.clinica.domain.entity.company.Company;
@@ -72,7 +73,7 @@ public class AtendimentoReportService {
                 .anyMatch(p -> p.getTipoPagamento().isCartao());
 
         BigDecimal total = atendimento.getItens().stream()
-                .map(item -> hasCardPayment ? item.getPriceCard() : item.getPrice())
+                .map(item -> resolveItemPrice(item, hasCardPayment))
                 .filter(v -> v != null)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -100,6 +101,14 @@ public class AtendimentoReportService {
 
         String html = templateEngine.process("atendimento/recibo", ctx);
         return renderPdf(html);
+    }
+
+    private BigDecimal resolveItemPrice(AtendimentoConsultaExame item, boolean hasCardPayment) {
+        if (hasCardPayment) {
+            BigDecimal card = item.getPriceCard();
+            if (card != null && card.compareTo(BigDecimal.ZERO) != 0) return card;
+        }
+        return item.getPrice();
     }
 
     private User currentUser() {
