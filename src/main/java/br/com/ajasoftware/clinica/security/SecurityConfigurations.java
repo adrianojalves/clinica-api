@@ -3,6 +3,7 @@ package br.com.ajasoftware.clinica.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
@@ -70,7 +71,16 @@ public class SecurityConfigurations {
                                 "/media/**"    // Allows everything inside media (fonts and assets)
                         ).permitAll()
 
-                        // 4. PROTECT EVERYTHING ELSE
+                        // 4. ANGULAR SPA ROUTES
+                        // GET to any non-API path is allowed: the browser needs to load
+                        // index.html so Angular can boot and its authGuard protects the route.
+                        // Real data security stays on /api/** via @PreAuthorize on each controller.
+                        .requestMatchers((HttpServletRequest req) ->
+                                HttpMethod.GET.name().equals(req.getMethod())
+                                && !req.getServletPath().startsWith("/api/")
+                        ).permitAll()
+
+                        // 5. PROTECT EVERYTHING ELSE
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
