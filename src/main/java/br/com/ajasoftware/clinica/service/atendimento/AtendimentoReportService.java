@@ -52,6 +52,7 @@ public class AtendimentoReportService {
         ctx.setVariable("printedAt", LocalDateTime.now());
         ctx.setVariable("isOrcamento", atendimento.getStatus() == AtendimentoStatus.ABERTO);
         ctx.setVariable("usuario", currentUser());
+        ctx.setVariable("observacaoCompleta", buildCombinedObservation(company, atendimento));
 
         // Trigger lazy collections inside the transaction
         atendimento.getItens().forEach(item -> {
@@ -137,6 +138,17 @@ public class AtendimentoReportService {
 
     private Company getCompany() {
         return companyRepository.findAll().stream().findFirst().orElse(null);
+    }
+
+    private String buildCombinedObservation(Company company, Atendimento atendimento) {
+        String companyObs = (company != null && company.getObservacao() != null && !company.getObservacao().isBlank())
+                ? company.getObservacao().trim() : null;
+        String atendimentoObs = (atendimento.getObservacao() != null && !atendimento.getObservacao().isBlank())
+                ? atendimento.getObservacao().trim() : null;
+
+        if (companyObs != null && atendimentoObs != null) return companyObs + "\n\n" + atendimentoObs;
+        if (companyObs != null) return companyObs;
+        return atendimentoObs;
     }
 
     private String loadLogoBase64(Company company) {

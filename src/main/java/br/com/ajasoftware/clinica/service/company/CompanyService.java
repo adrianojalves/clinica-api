@@ -43,6 +43,7 @@ public class CompanyService {
         company.setCnpj(data.cnpj());
         company.setPhone(data.phone());
         company.setEmail(data.email());
+        company.setObservacao(data.observacao());
 
         if (company.getAddress() == null) {
             company.setAddress(new Address());

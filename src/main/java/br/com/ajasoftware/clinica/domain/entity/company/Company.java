@@ -32,6 +32,9 @@ public class Company {
     @Column(name = "logo_url")
     private String logoUrl;
 
+    @Column(name = "observacao", columnDefinition = "TEXT")
+    private String observacao;
+
     @Embedded
     private Address address;
 }

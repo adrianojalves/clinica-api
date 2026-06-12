@@ -30,6 +30,8 @@ public record CompanyDTO(
 
         String logoUrl,
 
+        String observacao,
+
         @NotNull(message = "Os dados de endereço são obrigatórios.")
         @Valid
         AddressDataDTO address
@@ -43,6 +45,7 @@ public record CompanyDTO(
                 company.getPhone(),
                 company.getEmail(),
                 company.getLogoUrl(),
+                company.getObservacao(),
                 new AddressDataDTO(
                         company.getAddress().getLogradouro(),
                         company.getAddress().getBairro(),

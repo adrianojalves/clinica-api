@@ -176,10 +176,10 @@
 
         <!-- Campo de observação -->
         <div class="observation-section"
-             th:if="${atendimento.observacao != null and !#strings.isEmpty(atendimento.observacao)}">
+             th:if="${observacaoCompleta != null and !#strings.isEmpty(observacaoCompleta)}">
             <div class="observation-label">Observações:</div>
-            <div style="font-size:8.5pt; color:#2D3748; white-space:pre-line;"
-                 th:text="${atendimento.observacao}"></div>
+            <div style="font-size:7pt; color:#2D3748; white-space:pre-line; text-align:justify;"
+                 th:text="${observacaoCompleta}"></div>
         </div>
 
     </div>
