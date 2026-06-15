@@ -61,13 +61,17 @@ public class AdministradorService {
         int vinculosCriados = 0, linhasIgnoradas = 0;
 
         for (String[] row : rows) {
-            String clinicName = col(row, 1);
-            String tipoStr = col(row, 2);
-            String procedureName = col(row, 3);
-            String doctorRaw = col(row, 4);
-            String priceRaw = col(row, 5);
-            String transferRaw = col(row, 6);
-            String codigoRaw = col(row, 0);
+            // Skip header row
+            if (normalize(col(row, 0)).equals("código") || normalize(col(row, 0)).equals("codigo")) {
+                continue;
+            }
+
+            String clinicName = col(row, 2);
+            String tipoStr = col(row, 3);
+            String procedureName = col(row, 4);
+            String doctorRaw = col(row, 5);
+            String transferRaw = col(row, 7);
+            String priceRaw = col(row, 8);
 
             if (clinicName.isEmpty() || procedureName.isEmpty()) {
                 linhasIgnoradas++;
@@ -81,7 +85,7 @@ public class AdministradorService {
             ProcedureType type = resolveProcedureType(tipoStr);
 
             boolean procedureIsNew = !procedureMap.containsKey(normalize(procedureName));
-            MedicalProcedure procedure = resolveProcedure(procedureMap, procedureName, type, codigoRaw);
+            MedicalProcedure procedure = resolveProcedure(procedureMap, procedureName, type);
             if (procedureIsNew) procedimentosCriados++;
 
             String cleanedDoctorName = cleanDoctorName(doctorRaw);
@@ -123,21 +127,19 @@ public class AdministradorService {
         Clinic clinic = new Clinic();
         clinic.setName(name.trim());
         clinic.setFone1("");
-        clinic.setEmail("");
         clinic.setAddress(new Address("logradouro", "bairro", "45000000", "0", "complemento", "cidade", "BA"));
         clinic = clinicRepository.save(clinic);
         clinicMap.put(key, clinic);
         return clinic;
     }
 
-    private MedicalProcedure resolveProcedure(Map<String, MedicalProcedure> procedureMap, String name, ProcedureType type, String codigo) {
+    private MedicalProcedure resolveProcedure(Map<String, MedicalProcedure> procedureMap, String name, ProcedureType type) {
         String key = normalize(name);
         if (procedureMap.containsKey(key)) return procedureMap.get(key);
 
         MedicalProcedure procedure = new MedicalProcedure();
         procedure.setName(name.trim());
         procedure.setType(type);
-        procedure.setDescription(codigo.isBlank() ? null : codigo.trim());
         procedure = procedureRepository.save(procedure);
         procedureMap.put(key, procedure);
         return procedure;

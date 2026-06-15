@@ -1,11 +1,13 @@
 package br.com.ajasoftware.clinica.service.atendimento;
 
+import br.com.ajasoftware.clinica.domain.dto.atendimento.AtendimentoReciboItemDTO;
 import br.com.ajasoftware.clinica.domain.entity.User;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.Atendimento;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoConsultaExame;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoPagamento;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoStatus;
 import br.com.ajasoftware.clinica.domain.entity.company.Company;
+import br.com.ajasoftware.clinica.domain.entity.medical.procedures.MedicalProcedure;
 import br.com.ajasoftware.clinica.repository.AtendimentoPagamentoRepository;
 import br.com.ajasoftware.clinica.repository.AtendimentoRepository;
 import br.com.ajasoftware.clinica.repository.CompanyRepository;
@@ -22,10 +24,12 @@ import org.thymeleaf.context.Context;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
@@ -73,10 +77,39 @@ public class AtendimentoReportService {
         boolean hasCardPayment = pagamentos.stream()
                 .anyMatch(p -> p.getTipoPagamento().isCartao());
 
-        BigDecimal total = atendimento.getItens().stream()
-                .map(item -> resolveItemPrice(item, hasCardPayment))
-                .filter(v -> v != null)
+        BigDecimal totalBruto = pagamentos.stream()
+                .map(p -> p.getValor() != null ? p.getValor() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalDesconto = pagamentos.stream()
+                .map(p -> p.getValorDesconto() != null ? p.getValorDesconto() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalEfetivo = totalBruto.subtract(totalDesconto);
+
+        // Build proportionally adjusted item list
+        List<AtendimentoConsultaExame> itens = atendimento.getItens();
+        List<BigDecimal> originalPrices = itens.stream()
+                .map(item -> {
+                    BigDecimal p = resolveItemPrice(item, hasCardPayment);
+                    return p != null ? p : BigDecimal.ZERO;
+                })
+                .toList();
+
+        BigDecimal originalTotal = originalPrices.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        List<BigDecimal> adjustedPrices = calculateProportional(originalPrices, originalTotal, totalEfetivo);
+
+        List<AtendimentoReciboItemDTO> items = new ArrayList<>();
+        for (int i = 0; i < itens.size(); i++) {
+            MedicalProcedure mp = itens.get(i).getMedicalProcedure();
+            BigDecimal original = originalPrices.get(i);
+            BigDecimal adjusted = adjustedPrices.get(i);
+            items.add(new AtendimentoReciboItemDTO(
+                    mp != null ? mp.getName() : "—",
+                    original,
+                    original.subtract(adjusted),
+                    adjusted));
+        }
 
         Company company = getCompany();
         String logoBase64 = loadLogoBase64(company);
@@ -84,8 +117,11 @@ public class AtendimentoReportService {
         Context ctx = new Context(new Locale("pt", "BR"));
         ctx.setVariable("atendimento", atendimento);
         ctx.setVariable("pagamentos", pagamentos);
-        ctx.setVariable("hasCardPayment", hasCardPayment);
-        ctx.setVariable("total", total);
+        ctx.setVariable("totalBruto", totalBruto);
+        ctx.setVariable("totalDesconto", totalDesconto);
+        ctx.setVariable("totalEfetivo", totalEfetivo);
+        ctx.setVariable("originalTotal", originalTotal);
+        ctx.setVariable("items", items);
         ctx.setVariable("company", company);
         ctx.setVariable("logoBase64", logoBase64);
         ctx.setVariable("printedAt", LocalDateTime.now());
@@ -102,6 +138,38 @@ public class AtendimentoReportService {
 
         String html = templateEngine.process("atendimento/recibo", ctx);
         return renderPdf(html);
+    }
+
+    private List<BigDecimal> calculateProportional(List<BigDecimal> originalPrices, BigDecimal originalTotal, BigDecimal targetTotal) {
+        if (originalPrices.isEmpty()) return List.of();
+
+        List<BigDecimal> result = new ArrayList<>();
+        BigDecimal assigned = BigDecimal.ZERO;
+
+        if (originalTotal.compareTo(BigDecimal.ZERO) == 0) {
+            // Equal distribution when all item prices are zero
+            BigDecimal each = originalPrices.size() == 1
+                    ? targetTotal
+                    : targetTotal.divide(new BigDecimal(originalPrices.size()), 2, RoundingMode.DOWN);
+            for (int i = 0; i < originalPrices.size() - 1; i++) {
+                result.add(each);
+                assigned = assigned.add(each);
+            }
+            result.add(targetTotal.subtract(assigned));
+            return result;
+        }
+
+        // Proportional distribution; last item absorbs the cent remainder
+        for (int i = 0; i < originalPrices.size() - 1; i++) {
+            BigDecimal adjusted = originalPrices.get(i)
+                    .multiply(targetTotal)
+                    .divide(originalTotal, 2, RoundingMode.DOWN);
+            result.add(adjusted);
+            assigned = assigned.add(adjusted);
+        }
+        result.add(targetTotal.subtract(assigned));
+
+        return result;
     }
 
     private BigDecimal resolveItemPrice(AtendimentoConsultaExame item, boolean hasCardPayment) {

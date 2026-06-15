@@ -4,10 +4,8 @@
     <meta charset="UTF-8"/>
     <title>Recibo</title>
 
-    <!-- CSS compartilhado (página A5, cabeçalho/rodapé, tabela, flex) -->
     <th:block th:replace="~{atendimento/report-common :: base-styles}"></th:block>
 
-    <!-- Estilos específicos do recibo -->
     <style>
         .report-title {
             text-align: center;
@@ -25,65 +23,71 @@
             border-bottom: 1px solid #CBD5E0;
         }
 
-        .client-name {
-            font-size: 10pt;
-            font-weight: bold;
-            color: #2D3748;
-        }
+        .client-name { font-size: 10pt; font-weight: bold; color: #2D3748; }
+        .client-cpf  { font-size: 8.5pt; color: #718096; margin-top: 1mm; }
 
-        .client-cpf {
-            font-size: 8.5pt;
-            color: #718096;
-            margin-top: 1mm;
-        }
-
-        .payments-section {
+        /* ------------------------------------------------------------------ */
+        /* Tabela unificada para pagamentos e procedimentos                    */
+        /* ------------------------------------------------------------------ */
+        .recibo-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
             margin-bottom: 4mm;
         }
 
-        .payment-list {
-            list-style: none;
-            padding: 0;
+        .recibo-table thead tr {
+            background-color: #005293;
+            color: #FFFFFF;
         }
 
-        .payment-item {
-            display: table;
-            width: 100%;
-            font-size: 8.5pt;
-            padding: 1mm 0;
+        .recibo-table thead th {
+            padding: 1.5mm 2mm;
+            font-weight: bold;
+            font-size: 7.5pt;
+        }
+
+        .recibo-table tbody tr {
             border-bottom: 1px solid #F4F7F8;
         }
 
-        .payment-type     { display: table-cell; color: #2D3748; }
-        .payment-parcelas { display: table-cell; color: #718096; font-size: 8pt; text-align: center; }
-        .payment-value    { display: table-cell; text-align: right; font-weight: bold; color: #005293; }
+        .recibo-table tbody tr:nth-child(even) {
+            background-color: #F4F7F8;
+        }
 
-        .procedures-table thead th.col-valor { text-align: right; }
-        .col-nome  { width: 70%; }
-        .col-valor { width: 30%; text-align: right; }
+        .recibo-table tbody td {
+            padding: 1.5mm 2mm;
+            color: #2D3748;
+            vertical-align: middle;
+        }
 
-        .total-row {
-            display: table;
-            width: 100%;
+        .recibo-table tfoot tr {
             border-top: 2px solid #005293;
-            padding-top: 2mm;
-            margin-top: 1mm;
+            background-color: #F4F7F8;
         }
 
-        .total-label {
-            display: table-cell;
+        .recibo-table tfoot td {
+            padding: 1.5mm 2mm;
             font-weight: bold;
-            font-size: 9pt;
+            font-size: 8pt;
             color: #005293;
         }
 
-        .total-value {
-            display: table-cell;
-            text-align: right;
-            font-weight: bold;
-            font-size: 10pt;
-            color: #005293;
-        }
+        /* Alinhamento de colunas */
+        .col-forma  { width: 28%; }
+        .col-parc   { width: 10%; text-align: center; }
+        .col-money  { width: 20%; text-align: right; }
+        .col-nome   { width: 40%; }
+        .col-money-proc { width: 20%; text-align: right; }
+
+        /* Desconto em vermelho quando houver valor */
+        .val-desconto { color: #C53030; }
+
+        /* Total líquido em verde */
+        .val-liquido  { color: #2F855A; font-weight: bold; }
+
+        /* Linha de total no tfoot: azul primário */
+        .recibo-table tfoot .val-total { color: #005293; }
 
         .signature-section {
             margin-top: 4mm;
@@ -107,15 +111,9 @@
 </head>
 <body>
 
-    <!-- Cabeçalho corrente compartilhado -->
     <div th:replace="~{atendimento/report-common :: page-header}"></div>
-
-    <!-- Rodapé corrente compartilhado (${isOrcamento} não existe no recibo → não exibe o badge) -->
     <div th:replace="~{atendimento/report-common :: page-footer}"></div>
 
-    <!-- ================================================================= -->
-    <!-- CONTEÚDO PRINCIPAL                                                  -->
-    <!-- ================================================================= -->
     <div class="content-wrapper">
         <div>
 
@@ -123,20 +121,29 @@
 
             <!-- Dados do cliente -->
             <div class="client-section">
-                <div class="client-name"
-                     th:text="${atendimento.cliente.name}">—</div>
+                <div class="client-name" th:text="${atendimento.cliente.name}">—</div>
                 <div class="client-cpf"
-                     th:if="${atendimento.cliente.cpf != null
-                             and !#strings.isEmpty(atendimento.cliente.cpf)}"
+                     th:if="${atendimento.cliente.cpf != null and !#strings.isEmpty(atendimento.cliente.cpf)}"
                      th:text="${'CPF: ' + atendimento.cliente.cpf}">CPF: —</div>
             </div>
 
-            <!-- Formas de pagamento -->
-            <div class="payments-section" th:if="${!pagamentos.isEmpty()}">
-                <div class="section-label">Formas de Pagamento</div>
-                <ul class="payment-list">
-                    <li class="payment-item" th:each="pag : ${pagamentos}">
-                        <span class="payment-type">
+            <!-- ============================================================ -->
+            <!-- TABELA DE FORMAS DE PAGAMENTO                                 -->
+            <!-- ============================================================ -->
+            <div class="section-label" style="margin-bottom:2mm;">Formas de Pagamento</div>
+            <table class="recibo-table" th:if="${!pagamentos.isEmpty()}">
+                <thead>
+                    <tr>
+                        <th class="col-forma">Forma</th>
+                        <th class="col-parc" style="text-align:center;">Parcelas</th>
+                        <th class="col-money" style="text-align:right;">Valor Bruto</th>
+                        <th class="col-money" style="text-align:right;">Desconto</th>
+                        <th class="col-money" style="text-align:right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="pag : ${pagamentos}">
+                        <td class="col-forma">
                             <th:block th:switch="${pag.tipoPagamento.name()}">
                                 <span th:case="'DINHEIRO'">Dinheiro</span>
                                 <span th:case="'CARTAO_CREDITO'">Cartão de Crédito</span>
@@ -144,66 +151,115 @@
                                 <span th:case="'PIX'">PIX</span>
                                 <span th:case="*" th:text="${pag.tipoPagamento.name()}"></span>
                             </th:block>
-                        </span>
-                        <span class="payment-parcelas"
-                              th:if="${pag.parcelas != null and pag.parcelas > 1}"
-                              th:text="${pag.parcelas + 'x'}">1x</span>
-                        <span class="payment-parcelas"
-                              th:if="${pag.parcelas == null or pag.parcelas <= 1}"></span>
-                        <span class="payment-value"
-                              th:text="${'R$ ' + #numbers.formatDecimal(pag.valor, 1, 'POINT', 2, 'COMMA')}">
+                        </td>
+                        <td class="col-parc">
+                            <span th:if="${pag.parcelas != null and pag.parcelas > 1}"
+                                  th:text="${pag.parcelas + 'x'}"></span>
+                            <span th:if="${pag.parcelas == null or pag.parcelas <= 1}">—</span>
+                        </td>
+                        <td class="col-money"
+                            th:text="${'R$ ' + #numbers.formatDecimal(pag.valor, 1, 'POINT', 2, 'COMMA')}">
                             R$ 0,00
-                        </span>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Tabela de procedimentos -->
-            <div class="section-label" style="margin-bottom:2mm;">Procedimentos</div>
-            <table class="procedures-table">
-                <thead>
-                    <tr>
-                        <th class="col-nome">Procedimento</th>
-                        <th class="col-valor">Valor</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="item : ${atendimento.itens}">
-                        <td class="col-nome"
-                            th:text="${item.medicalProcedure.name}">—</td>
-                        <td class="col-valor"
-                            th:text="${'R$ ' + #numbers.formatDecimal(
-                                        (hasCardPayment and item.priceCard != null and item.priceCard.signum() != 0)
-                                            ? item.priceCard
-                                            : item.price,
-                                        1, 'POINT', 2, 'COMMA')}">
+                        </td>
+                        <td class="col-money">
+                            <span th:if="${pag.valorDesconto != null and pag.valorDesconto gt 0}"
+                                  class="val-desconto"
+                                  th:text="${'R$ ' + #numbers.formatDecimal(pag.valorDesconto, 1, 'POINT', 2, 'COMMA')}">
+                            </span>
+                            <span th:if="${pag.valorDesconto == null or pag.valorDesconto le 0}">—</span>
+                        </td>
+                        <td class="col-money val-liquido"
+                            th:text="${'R$ ' + #numbers.formatDecimal(pag.valor - pag.valorDesconto, 1, 'POINT', 2, 'COMMA')}">
                             R$ 0,00
                         </td>
                     </tr>
-                    <tr th:if="${atendimento.itens.isEmpty()}">
-                        <td colspan="2"
-                            style="text-align:center; color:#718096; font-style:italic;">
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2">Total</td>
+                        <td class="col-money val-total"
+                            th:text="${'R$ ' + #numbers.formatDecimal(totalBruto, 1, 'POINT', 2, 'COMMA')}">
+                            R$ 0,00
+                        </td>
+                        <td class="col-money">
+                            <span th:if="${totalDesconto != null and totalDesconto gt 0}"
+                                  class="val-desconto"
+                                  th:text="${'R$ ' + #numbers.formatDecimal(totalDesconto, 1, 'POINT', 2, 'COMMA')}">
+                            </span>
+                            <span th:if="${totalDesconto == null or totalDesconto le 0}">—</span>
+                        </td>
+                        <td class="col-money val-total"
+                            th:text="${'R$ ' + #numbers.formatDecimal(totalEfetivo, 1, 'POINT', 2, 'COMMA')}">
+                            R$ 0,00
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <!-- ============================================================ -->
+            <!-- TABELA DE PROCEDIMENTOS                                        -->
+            <!-- ============================================================ -->
+            <div class="section-label" style="margin-bottom:2mm;">Procedimentos</div>
+            <table class="recibo-table">
+                <thead>
+                    <tr>
+                        <th class="col-nome">Procedimento</th>
+                        <th class="col-money-proc" style="text-align:right;">Valor</th>
+                        <th class="col-money-proc" style="text-align:right;">Desconto</th>
+                        <th class="col-money-proc" style="text-align:right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${items}">
+                        <td class="col-nome" th:text="${item.procedureName}">—</td>
+                        <td class="col-money-proc"
+                            th:text="${'R$ ' + #numbers.formatDecimal(item.discountAmount != null and item.discountAmount lt 0 ? item.adjustedPrice : item.originalPrice, 1, 'POINT', 2, 'COMMA')}">
+                            R$ 0,00
+                        </td>
+                        <td class="col-money-proc">
+                            <span th:if="${item.discountAmount != null and item.discountAmount gt 0}"
+                                  class="val-desconto"
+                                  th:text="${'R$ ' + #numbers.formatDecimal(item.discountAmount, 1, 'POINT', 2, 'COMMA')}">
+                            </span>
+                            <span th:if="${item.discountAmount == null or item.discountAmount le 0}">—</span>
+                        </td>
+                        <td class="col-money-proc val-liquido"
+                            th:text="${'R$ ' + #numbers.formatDecimal(item.adjustedPrice, 1, 'POINT', 2, 'COMMA')}">
+                            R$ 0,00
+                        </td>
+                    </tr>
+                    <tr th:if="${items.isEmpty()}">
+                        <td colspan="4" style="text-align:center; color:#718096; font-style:italic;">
                             Nenhum procedimento informado.
                         </td>
                     </tr>
                 </tbody>
+                <tfoot>
+                    <tr>
+                        <td>Total</td>
+                        <td class="col-money-proc val-total"
+                            th:text="${'R$ ' + #numbers.formatDecimal(totalEfetivo, 1, 'POINT', 2, 'COMMA')}">
+                            R$ 0,00
+                        </td>
+                        <td class="col-money-proc">
+                            <span th:if="${totalDesconto != null and totalDesconto gt 0}"
+                                  class="val-desconto"
+                                  th:text="${'R$ ' + #numbers.formatDecimal(totalDesconto, 1, 'POINT', 2, 'COMMA')}">
+                            </span>
+                            <span th:if="${totalDesconto == null or totalDesconto le 0}">—</span>
+                        </td>
+                        <td class="col-money-proc val-total"
+                            th:text="${'R$ ' + #numbers.formatDecimal(totalEfetivo, 1, 'POINT', 2, 'COMMA')}">
+                            R$ 0,00
+                        </td>
+                    </tr>
+                </tfoot>
             </table>
-
-            <!-- Total -->
-            <div class="total-row">
-                <span class="total-label">Total</span>
-                <span class="total-value"
-                      th:text="${'R$ ' + #numbers.formatDecimal(total, 1, 'POINT', 2, 'COMMA')}">
-                    R$ 0,00
-                </span>
-            </div>
 
         </div>
 
-        <!-- Espaçador empurra a linha de assinatura para o rodapé -->
         <div class="content-spacer"></div>
 
-        <!-- Assinatura -->
         <div class="signature-section">
             <div class="signature-line"></div>
             <div class="signature-caption"

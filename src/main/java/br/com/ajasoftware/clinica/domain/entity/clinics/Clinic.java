@@ -39,7 +39,6 @@ public class Clinic {
 
     private String site;
 
-    @Column(nullable = false)
     private String email;
 
     @Column(name = "ativo", nullable = false)

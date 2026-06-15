@@ -1,0 +1,1 @@
+ALTER TABLE table_clinica MODIFY COLUMN email VARCHAR(255) NULL;

@@ -21,7 +21,6 @@ public record ClinicRequestDTO(
         String fone2,
         String site,
 
-        @NotBlank(message = "O e-mail é obrigatório.")
         @Email(message = "Formato de e-mail inválido.")
         String email,
 

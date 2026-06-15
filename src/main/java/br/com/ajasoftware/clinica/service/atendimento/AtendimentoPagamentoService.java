@@ -2,6 +2,7 @@ package br.com.ajasoftware.clinica.service.atendimento;
 
 import br.com.ajasoftware.clinica.domain.dto.atendimento.AtendimentoPagamentoRequestDTO;
 import br.com.ajasoftware.clinica.domain.dto.atendimento.AtendimentoPagamentoResponseDTO;
+import br.com.ajasoftware.clinica.domain.entity.User;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.Atendimento;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoPagamento;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoStatus;
@@ -11,11 +12,13 @@ import br.com.ajasoftware.clinica.repository.AtendimentoPagamentoRepository;
 import br.com.ajasoftware.clinica.repository.AtendimentoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Service
@@ -43,6 +46,7 @@ public class AtendimentoPagamentoService {
         int parcelas = data.parcelas() != null ? data.parcelas() : 1;
         validateCartaoDesconto(data.tipoPagamento(), desconto);
         validateParcelas(data.tipoPagamento(), parcelas);
+        validateDescontoLimite(atendimento, desconto, null);
 
         AtendimentoPagamento pagamento = new AtendimentoPagamento();
         pagamento.setAtendimento(atendimento);
@@ -63,6 +67,7 @@ public class AtendimentoPagamentoService {
         int parcelas = data.parcelas() != null ? data.parcelas() : 1;
         validateCartaoDesconto(data.tipoPagamento(), desconto);
         validateParcelas(data.tipoPagamento(), parcelas);
+        validateDescontoLimite(pagamento.getAtendimento(), desconto, pagamento.getId());
 
         pagamento.setTipoPagamento(data.tipoPagamento());
         pagamento.setValor(data.valor());
@@ -82,6 +87,35 @@ public class AtendimentoPagamentoService {
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
+
+    private void validateDescontoLimite(Atendimento atendimento, BigDecimal novoDesconto, Long excludeId) {
+        if (novoDesconto.compareTo(BigDecimal.ZERO) <= 0) return;
+
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        BigDecimal percentualMax = user.getPercentutalDesconto() != null ? user.getPercentutalDesconto() : BigDecimal.ZERO;
+
+        if (percentualMax.compareTo(BigDecimal.ZERO) == 0) {
+            throw new BusinessException("Você não possui permissão para aplicar desconto.");
+        }
+
+        BigDecimal totalPrice = atendimento.getTotalPrice() != null ? atendimento.getTotalPrice() : BigDecimal.ZERO;
+        BigDecimal limiteDesconto = totalPrice
+                .multiply(percentualMax)
+                .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+
+        BigDecimal descontoJaAplicado = excludeId != null
+                ? repository.sumDescontoByAtendimentoIdExcluding(atendimento.getId(), excludeId)
+                : repository.sumDescontoByAtendimentoId(atendimento.getId());
+
+        BigDecimal descontoTotal = descontoJaAplicado.add(novoDesconto);
+
+        if (descontoTotal.compareTo(limiteDesconto) > 0) {
+            throw new BusinessException(
+                    "O desconto total de R$ " + descontoTotal.toPlainString() +
+                    " excede o limite permitido de R$ " + limiteDesconto.toPlainString() +
+                    " (" + percentualMax.stripTrailingZeros().toPlainString() + "% sobre o total de R$ " + totalPrice.toPlainString() + ").");
+        }
+    }
 
     private void validateCartaoDesconto(TipoPagamento tipo, BigDecimal desconto) {
         if (tipo.isCartao() && desconto.compareTo(BigDecimal.ZERO) > 0) {
