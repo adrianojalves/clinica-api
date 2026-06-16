@@ -13,6 +13,7 @@ import br.com.ajasoftware.clinica.repository.DoctorRepository;
 import br.com.ajasoftware.clinica.repository.MedicalProcedureRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,6 +36,7 @@ public class AdministradorService {
     private final DoctorRepository doctorRepository;
     private final MedicalProcedureRepository procedureRepository;
     private final ClinicDoctorProcedureRepository cdpRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     @Transactional
     public ImportResultDTO importarTabela(MultipartFile file) {
@@ -242,5 +244,18 @@ public class AdministradorService {
 
     private String buildCdpKey(Long clinicId, Long doctorId, Long procedureId) {
         return clinicId + ":" + (doctorId == null ? "null" : doctorId) + ":" + procedureId;
+    }
+
+    @Transactional
+    public void deleteAllData() {
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
+        jdbcTemplate.execute("TRUNCATE TABLE table_atendimento_consulta_exame");
+        jdbcTemplate.execute("TRUNCATE TABLE table_atendimento_pagamentos");
+        jdbcTemplate.execute("TRUNCATE TABLE table_atendimento");
+        jdbcTemplate.execute("TRUNCATE TABLE table_clinic_doctor_procedure");
+        jdbcTemplate.execute("TRUNCATE TABLE table_doctor");
+        jdbcTemplate.execute("TRUNCATE TABLE table_medical_procedure");
+        jdbcTemplate.execute("TRUNCATE TABLE table_clinica");
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
     }
 }
