@@ -3,6 +3,7 @@ package br.com.ajasoftware.clinica.service.users;
 import br.com.ajasoftware.clinica.domain.dto.clinics.ClinicResponseDTO;
 import br.com.ajasoftware.clinica.domain.dto.users.UserRequestDTO;
 import br.com.ajasoftware.clinica.domain.dto.users.UserResponseDTO;
+import br.com.ajasoftware.clinica.domain.dto.users.UserSummaryDTO;
 import br.com.ajasoftware.clinica.domain.dto.users.UserUpdateRequestDTO;
 import br.com.ajasoftware.clinica.domain.entity.User;
 import br.com.ajasoftware.clinica.domain.entity.clinics.Clinic;
@@ -114,6 +115,11 @@ public class UserService {
         }
 
         return new UserResponseDTO(user);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserSummaryDTO> listSummary(UserFilter filter, Pageable pageable) {
+        return userRepository.findSummaryWithFilter(filter, pageable);
     }
 
     @Transactional(readOnly = true)

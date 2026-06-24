@@ -1,9 +1,9 @@
 package br.com.ajasoftware.clinica.controller.users;
 
-import br.com.ajasoftware.clinica.domain.dto.clinics.ClinicResponseDTO;
 import br.com.ajasoftware.clinica.domain.dto.users.UserRequestDTO;
 import br.com.ajasoftware.clinica.domain.dto.users.UserResponseDTO;
 import br.com.ajasoftware.clinica.domain.dto.users.UserStatusDTO;
+import br.com.ajasoftware.clinica.domain.dto.users.UserSummaryDTO;
 import br.com.ajasoftware.clinica.domain.dto.users.UserUpdateRequestDTO;
 import br.com.ajasoftware.clinica.domain.filter.users.UserFilter;
 import br.com.ajasoftware.clinica.service.users.UserService;
@@ -89,6 +89,14 @@ public class UserController {
         var responseDTO = userService.updateUser(id, data);
 
         return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping("/summary")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RELATORIOS')")
+    public ResponseEntity<Page<UserSummaryDTO>> listSummary(
+            @ModelAttribute UserFilter filter,
+            @PageableDefault(size = 10, sort = {"name"}) Pageable pageable) {
+        return ResponseEntity.ok(userService.listSummary(filter, pageable));
     }
 
     @GetMapping("/{id}")

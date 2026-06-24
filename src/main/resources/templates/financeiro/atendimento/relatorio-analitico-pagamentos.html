@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Relat&#243;rio Anal&#237;tico por Forma de Pagamento</title>
+
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 38mm 12mm 18mm 12mm;
+
+            @top-center {
+                content: element(page-header);
+                width: 100%;
+            }
+            @bottom-center {
+                content: element(page-footer);
+                width: 100%;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 9pt;
+            color: #2D3748;
+            line-height: 1.4;
+        }
+
+        /* ---- Running header ---- */
+        #page-header {
+            position: running(page-header);
+            width: 100%;
+            border-bottom: 2px solid #009B8E;
+            padding-bottom: 3mm;
+        }
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-logo-cell {
+            width: 28mm;
+            vertical-align: middle;
+            padding-right: 4mm;
+        }
+
+        .header-logo-img {
+            max-width: 26mm;
+            max-height: 22mm;
+        }
+
+        .header-logo-placeholder {
+            width: 26mm;
+            height: 22mm;
+            background-color: #F4F7F8;
+            border: 1px solid #CBD5E0;
+        }
+
+        .header-info-cell {
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .header-company-name {
+            font-size: 13pt;
+            font-weight: bold;
+            color: #005293;
+            display: block;
+        }
+
+        .header-cnpj {
+            font-size: 9pt;
+            color: #2D3748;
+            display: block;
+            margin-top: 1mm;
+        }
+
+        .header-contact {
+            font-size: 8pt;
+            color: #718096;
+            display: block;
+            margin-top: 1mm;
+        }
+
+        .header-address {
+            font-size: 7.5pt;
+            color: #718096;
+            display: block;
+            margin-top: 1mm;
+        }
+
+        /* ---- Running footer ---- */
+        #page-footer {
+            position: running(page-footer);
+            font-size: 7.5pt;
+            color: #718096;
+            white-space: nowrap;
+            border-top: 0.5pt solid #CBD5E0;
+            padding-top: 1.5mm;
+            width: 100%;
+            display: table;
+        }
+
+        .footer-left {
+            display: table-cell;
+            text-align: left;
+        }
+
+        .footer-right {
+            display: table-cell;
+            text-align: right;
+        }
+
+        /* ---- Report title, filters ---- */
+        .report-title {
+            text-align: center;
+            font-size: 12pt;
+            font-weight: bold;
+            color: #005293;
+            margin-bottom: 2mm;
+        }
+
+        .filters-section {
+            text-align: center;
+            font-size: 8pt;
+            color: #718096;
+            margin-bottom: 4mm;
+            padding-bottom: 3mm;
+            border-bottom: 1px solid #CBD5E0;
+        }
+
+        .filter-item {
+            display: inline;
+            margin: 0 3mm;
+        }
+
+        .filter-label {
+            font-weight: bold;
+            color: #2D3748;
+        }
+
+        /* ---- Data table ---- */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+        }
+
+        .report-table thead tr {
+            background-color: #005293;
+            color: #ffffff;
+        }
+
+        .report-table thead th {
+            padding: 2mm 2mm;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .report-table thead th.text-right {
+            text-align: right;
+        }
+
+        .report-table thead th.text-center {
+            text-align: center;
+        }
+
+        .report-table tbody tr:nth-child(even) {
+            background-color: #F4F7F8;
+        }
+
+        .report-table tbody td {
+            padding: 1.5mm 2mm;
+            border-bottom: 1px solid #CBD5E0;
+            vertical-align: top;
+        }
+
+        .report-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .col-id        { width: 7%;  text-align: center; }
+        .col-cliente   { width: 22%; }
+        .col-clinica   { width: 18%; }
+        .col-tipo      { width: 15%; }
+        .col-parcelas  { width: 8%;  text-align: center; }
+        .col-valor     { width: 12%; text-align: right; }
+        .col-desconto  { width: 10%; text-align: right; }
+        .col-total     { width: 10%; text-align: right; }
+
+        /* ---- Totals row ---- */
+        .totals-row td {
+            background-color: #005293 !important;
+            color: #ffffff;
+            font-weight: bold;
+            padding: 2mm 2mm;
+            border-bottom: none !important;
+        }
+
+        .text-right  { text-align: right; }
+        .text-center { text-align: center; }
+
+        .empty-message {
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+            padding: 8mm 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ====== Running header ====== -->
+    <div id="page-header">
+        <table class="header-table">
+            <tr>
+                <td class="header-logo-cell">
+                    <img th:if="${logoBase64 != null}"
+                         th:src="${logoBase64}"
+                         alt="Logo"
+                         class="header-logo-img"/>
+                    <div th:if="${logoBase64 == null}" class="header-logo-placeholder"></div>
+                </td>
+                <td class="header-info-cell">
+                    <span class="header-company-name"
+                          th:text="${company != null ? company.corporateName : 'Empresa n&#227;o configurada'}">
+                        Empresa
+                    </span>
+                    <span class="header-cnpj"
+                          th:if="${company != null and company.cnpj != null}"
+                          th:text="${'CNPJ: ' + company.cnpj}">
+                        CNPJ: 00.000.000/0000-00
+                    </span>
+                    <span class="header-contact" th:if="${company != null}">
+                        <th:block th:if="${company.phone != null}"
+                                  th:text="${company.phone}">Fone</th:block>
+                        <th:block th:if="${company.phone != null and company.email != null}"> &#160;|&#160; </th:block>
+                        <th:block th:if="${company.email != null}"
+                                  th:text="${company.email}">Email</th:block>
+                    </span>
+                    <span class="header-address"
+                          th:if="${company != null
+                                  and company.address != null
+                                  and company.address.logradouro != null}">
+                        <th:block th:text="${company.address.logradouro}"></th:block><th:block th:if="${company.address.numero != null}">, <th:block th:text="${company.address.numero}"></th:block></th:block><th:block th:if="${company.address.bairro != null}"> - <th:block th:text="${company.address.bairro}"></th:block></th:block><th:block th:if="${company.address.cidade != null}">, <th:block th:text="${company.address.cidade}"></th:block></th:block><th:block th:if="${company.address.uf != null}">/<th:block th:text="${company.address.uf}"></th:block></th:block><th:block th:if="${company.address.cep != null}"> - CEP: <th:block th:text="${company.address.cep}"></th:block></th:block>
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ====== Running footer ====== -->
+    <div id="page-footer">
+        <span class="footer-left"
+              th:text="${usuario != null ? usuario.name : ''}">Usu&#225;rio</span>
+        <span class="footer-right">
+            <span th:text="${#temporals.format(printedAt, 'dd/MM/yyyy HH:mm')}">00/00/0000 00:00</span>
+        </span>
+    </div>
+
+    <!-- ====== Report content ====== -->
+    <div class="report-title">Relat&#243;rio Anal&#237;tico de Atendimentos - Forma de Pagamento</div>
+
+    <div class="filters-section" th:if="${!filtrosAplicados.isEmpty()}">
+        <span class="filter-item" th:each="entry : ${filtrosAplicados}">
+            <span class="filter-label" th:text="${entry.key + ':'}">Filtro:</span>
+            <span th:text="${entry.value}">Valor</span>
+        </span>
+    </div>
+
+    <table class="report-table" th:if="${!itens.isEmpty()}">
+        <thead>
+            <tr>
+                <th class="col-id text-center">C&#243;d.</th>
+                <th class="col-cliente">Cliente</th>
+                <th class="col-clinica">Cl&#237;nica</th>
+                <th class="col-tipo">Tipo Pagamento</th>
+                <th class="col-parcelas text-center">Parcelas</th>
+                <th class="col-valor text-right">Valor</th>
+                <th class="col-desconto text-right">Desconto</th>
+                <th class="col-total text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="item : ${itens}">
+                <td class="col-id text-center" th:text="${item.atendimentoId}">1</td>
+                <td class="col-cliente" th:text="${item.clienteName}">Cliente</td>
+                <td class="col-clinica" th:text="${item.clinicaName}">Cl&#237;nica</td>
+                <td class="col-tipo" th:text="${item.tipoPagamentoLabel()}">Dinheiro</td>
+                <td class="col-parcelas text-center" th:text="${item.parcelas}">1</td>
+                <td class="col-valor text-right"
+                    th:text="${#numbers.formatDecimal(item.valor != null ? item.valor : 0, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                <td class="col-desconto text-right"
+                    th:text="${#numbers.formatDecimal(item.valorDesconto != null ? item.valorDesconto : 0, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                <td class="col-total text-right"
+                    th:text="${#numbers.formatDecimal(item.total(), 1, 'POINT', 2, 'COMMA')}">0,00</td>
+            </tr>
+            <tr class="totals-row">
+                <td colspan="5" class="text-right" style="font-size:8.5pt;">TOTAIS</td>
+                <td class="text-right"
+                    th:text="${#numbers.formatDecimal(sumValor, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                <td class="text-right"
+                    th:text="${#numbers.formatDecimal(sumDesconto, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                <td class="text-right"
+                    th:text="${#numbers.formatDecimal(sumTotal, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="empty-message" th:if="${itens.isEmpty()}">
+        Nenhum pagamento encontrado para os filtros selecionados.
+    </div>
+
+</body>
+</html>

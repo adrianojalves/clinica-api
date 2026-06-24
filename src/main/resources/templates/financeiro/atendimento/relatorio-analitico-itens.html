@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Relat&#243;rio Anal&#237;tico por Itens</title>
+
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 38mm 12mm 18mm 12mm;
+
+            @top-center {
+                content: element(page-header);
+                width: 100%;
+            }
+            @bottom-center {
+                content: element(page-footer);
+                width: 100%;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 9pt;
+            color: #2D3748;
+            line-height: 1.4;
+        }
+
+        /* ---- Running header ---- */
+        #page-header {
+            position: running(page-header);
+            width: 100%;
+            border-bottom: 2px solid #009B8E;
+            padding-bottom: 3mm;
+        }
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-logo-cell {
+            width: 28mm;
+            vertical-align: middle;
+            padding-right: 4mm;
+        }
+
+        .header-logo-img {
+            max-width: 26mm;
+            max-height: 22mm;
+        }
+
+        .header-logo-placeholder {
+            width: 26mm;
+            height: 22mm;
+            background-color: #F4F7F8;
+            border: 1px solid #CBD5E0;
+        }
+
+        .header-info-cell {
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .header-company-name {
+            font-size: 13pt;
+            font-weight: bold;
+            color: #005293;
+            display: block;
+        }
+
+        .header-cnpj {
+            font-size: 9pt;
+            color: #2D3748;
+            display: block;
+            margin-top: 1mm;
+        }
+
+        .header-contact {
+            font-size: 8pt;
+            color: #718096;
+            display: block;
+            margin-top: 1mm;
+        }
+
+        .header-address {
+            font-size: 7.5pt;
+            color: #718096;
+            display: block;
+            margin-top: 1mm;
+        }
+
+        /* ---- Running footer ---- */
+        #page-footer {
+            position: running(page-footer);
+            font-size: 7.5pt;
+            color: #718096;
+            white-space: nowrap;
+            border-top: 0.5pt solid #CBD5E0;
+            padding-top: 1.5mm;
+            width: 100%;
+            display: table;
+        }
+
+        .footer-left {
+            display: table-cell;
+            text-align: left;
+        }
+
+        .footer-right {
+            display: table-cell;
+            text-align: right;
+        }
+
+        /* ---- Report title, filters ---- */
+        .report-title {
+            text-align: center;
+            font-size: 12pt;
+            font-weight: bold;
+            color: #005293;
+            margin-bottom: 2mm;
+        }
+
+        .filters-section {
+            text-align: center;
+            font-size: 8pt;
+            color: #718096;
+            margin-bottom: 4mm;
+            padding-bottom: 3mm;
+            border-bottom: 1px solid #CBD5E0;
+        }
+
+        .filter-item {
+            display: inline;
+            margin: 0 3mm;
+        }
+
+        .filter-label {
+            font-weight: bold;
+            color: #2D3748;
+        }
+
+        /* ---- Card (master) ---- */
+        .card {
+            border: 1px solid #CBD5E0;
+            margin-bottom: 4mm;
+            page-break-inside: avoid;
+        }
+
+        .card-header {
+            background-color: #005293;
+            color: #ffffff;
+            padding: 1.5mm 3mm;
+            font-size: 8.5pt;
+            font-weight: bold;
+        }
+
+        .card-body {
+            padding: 2mm 3mm;
+        }
+
+        .card-row {
+            display: table;
+            width: 100%;
+            font-size: 8pt;
+            margin-bottom: 1mm;
+        }
+
+        .card-cell {
+            display: table-cell;
+            vertical-align: top;
+            padding-right: 4mm;
+        }
+
+        .card-label {
+            font-weight: bold;
+            color: #718096;
+        }
+
+        .card-value {
+            color: #2D3748;
+        }
+
+        .card-values-row {
+            display: table;
+            width: 100%;
+            font-size: 8pt;
+            background-color: #F4F7F8;
+            padding: 1.5mm 3mm;
+            border-top: 1px solid #CBD5E0;
+        }
+
+        .card-val-cell {
+            display: table-cell;
+            text-align: right;
+            width: 25%;
+        }
+
+        .card-val-label {
+            font-weight: bold;
+            color: #718096;
+            font-size: 7pt;
+            display: block;
+        }
+
+        .card-val-amount {
+            color: #2D3748;
+            font-weight: bold;
+        }
+
+        /* ---- Items table (detail) ---- */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+        }
+
+        .items-table thead tr {
+            background-color: #009B8E;
+            color: #ffffff;
+        }
+
+        .items-table thead th {
+            padding: 1.5mm 3mm;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .items-table tbody tr:nth-child(even) {
+            background-color: #F4F7F8;
+        }
+
+        .items-table tbody td {
+            padding: 1.5mm 3mm;
+            border-bottom: 1px solid #CBD5E0;
+            vertical-align: top;
+        }
+
+        .items-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .col-proc   { width: 40%; }
+        .col-doctor { width: 28%; }
+        .col-price  { width: 16%; text-align: right; }
+        .col-pcard  { width: 16%; text-align: right; }
+
+        .text-right { text-align: right; }
+        .items-table thead th.text-right { text-align: right; }
+
+        /* ---- Grand totals ---- */
+        .grand-totals {
+            margin-top: 4mm;
+            border: 1.5px solid #005293;
+            padding: 2mm 3mm;
+            display: table;
+            width: 100%;
+            font-size: 9pt;
+        }
+
+        .grand-totals-label {
+            display: table-cell;
+            font-weight: bold;
+            color: #005293;
+            vertical-align: middle;
+            width: 25%;
+        }
+
+        .grand-totals-values {
+            display: table-cell;
+            width: 75%;
+        }
+
+        .gt-row {
+            display: table;
+            width: 100%;
+        }
+
+        .gt-cell {
+            display: table-cell;
+            text-align: right;
+            width: 25%;
+        }
+
+        .gt-cell-label {
+            font-size: 7pt;
+            color: #718096;
+            font-weight: bold;
+            display: block;
+        }
+
+        .gt-cell-value {
+            font-weight: bold;
+            color: #2D3748;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+            padding: 8mm 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ====== Running header ====== -->
+    <div id="page-header">
+        <table class="header-table">
+            <tr>
+                <td class="header-logo-cell">
+                    <img th:if="${logoBase64 != null}"
+                         th:src="${logoBase64}"
+                         alt="Logo"
+                         class="header-logo-img"/>
+                    <div th:if="${logoBase64 == null}" class="header-logo-placeholder"></div>
+                </td>
+                <td class="header-info-cell">
+                    <span class="header-company-name"
+                          th:text="${company != null ? company.corporateName : 'Empresa n&#227;o configurada'}">
+                        Empresa
+                    </span>
+                    <span class="header-cnpj"
+                          th:if="${company != null and company.cnpj != null}"
+                          th:text="${'CNPJ: ' + company.cnpj}">
+                        CNPJ: 00.000.000/0000-00
+                    </span>
+                    <span class="header-contact" th:if="${company != null}">
+                        <th:block th:if="${company.phone != null}"
+                                  th:text="${company.phone}">Fone</th:block>
+                        <th:block th:if="${company.phone != null and company.email != null}"> &#160;|&#160; </th:block>
+                        <th:block th:if="${company.email != null}"
+                                  th:text="${company.email}">Email</th:block>
+                    </span>
+                    <span class="header-address"
+                          th:if="${company != null
+                                  and company.address != null
+                                  and company.address.logradouro != null}">
+                        <th:block th:text="${company.address.logradouro}"></th:block><th:block th:if="${company.address.numero != null}">, <th:block th:text="${company.address.numero}"></th:block></th:block><th:block th:if="${company.address.bairro != null}"> - <th:block th:text="${company.address.bairro}"></th:block></th:block><th:block th:if="${company.address.cidade != null}">, <th:block th:text="${company.address.cidade}"></th:block></th:block><th:block th:if="${company.address.uf != null}">/<th:block th:text="${company.address.uf}"></th:block></th:block><th:block th:if="${company.address.cep != null}"> - CEP: <th:block th:text="${company.address.cep}"></th:block></th:block>
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ====== Running footer ====== -->
+    <div id="page-footer">
+        <span class="footer-left"
+              th:text="${usuario != null ? usuario.name : ''}">Usu&#225;rio</span>
+        <span class="footer-right">
+            <span th:text="${#temporals.format(printedAt, 'dd/MM/yyyy HH:mm')}">00/00/0000 00:00</span>
+        </span>
+    </div>
+
+    <!-- ====== Report content ====== -->
+    <div class="report-title">Relat&#243;rio Anal&#237;tico de Atendimentos - Itens</div>
+
+    <div class="filters-section" th:if="${!filtrosAplicados.isEmpty()}">
+        <span class="filter-item" th:each="entry : ${filtrosAplicados}">
+            <span class="filter-label" th:text="${entry.key + ':'}">Filtro:</span>
+            <span th:text="${entry.value}">Valor</span>
+        </span>
+    </div>
+
+    <!-- ====== Cards ====== -->
+    <div th:each="atend : ${atendimentos}" class="card">
+
+        <div class="card-header">
+            <span th:text="${'Atendimento #' + atend.id}">Atendimento #1</span>
+        </div>
+
+        <div class="card-body">
+            <div class="card-row">
+                <span class="card-cell">
+                    <span class="card-label">Cliente: </span>
+                    <span class="card-value" th:text="${atend.cliente.name}">-</span>
+                </span>
+                <span class="card-cell">
+                    <span class="card-label">Cl&#237;nica: </span>
+                    <span class="card-value" th:text="${atend.clinica.name}">-</span>
+                </span>
+                <span class="card-cell">
+                    <span class="card-label">Emiss&#227;o: </span>
+                    <span class="card-value" th:text="${#temporals.format(atend.dataEmissao, 'dd/MM/yyyy')}">-</span>
+                </span>
+                <span class="card-cell" style="padding-right:0;">
+                    <span class="card-label">Consulta: </span>
+                    <span class="card-value"
+                          th:text="${atend.dataConsultaExame != null ? #temporals.format(atend.dataConsultaExame, 'dd/MM/yyyy') : '-'}">-</span>
+                </span>
+            </div>
+        </div>
+
+        <div class="card-values-row">
+            <span class="card-val-cell">
+                <span class="card-val-label">Valor Total</span>
+                <span class="card-val-amount"
+                      th:text="${#numbers.formatDecimal(atend.totalPrice != null ? atend.totalPrice : 0, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+            </span>
+            <span class="card-val-cell">
+                <span class="card-val-label">Desconto</span>
+                <span class="card-val-amount"
+                      th:text="${#numbers.formatDecimal(atend.valorDesconto != null ? atend.valorDesconto : 0, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+            </span>
+            <span class="card-val-cell">
+                <span class="card-val-label">Acr&#233;scimo</span>
+                <span class="card-val-amount"
+                      th:text="${#numbers.formatDecimal(atend.valorAcrescimo != null ? atend.valorAcrescimo : 0, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+            </span>
+            <span class="card-val-cell">
+                <span class="card-val-label">Total Geral</span>
+                <span class="card-val-amount" style="color:#005293;"
+                      th:text="${#numbers.formatDecimal(
+                          (atend.totalPrice != null ? atend.totalPrice : 0)
+                          - (atend.valorDesconto != null ? atend.valorDesconto : 0)
+                          + (atend.valorAcrescimo != null ? atend.valorAcrescimo : 0),
+                          1, 'POINT', 2, 'COMMA')}">0,00</span>
+            </span>
+        </div>
+
+        <!-- Detail items -->
+        <table class="items-table" th:if="${!atend.itens.isEmpty()}">
+            <thead>
+                <tr>
+                    <th class="col-proc">Procedimento</th>
+                    <th class="col-doctor">M&#233;dico</th>
+                    <th class="col-price text-right">Pre&#231;o</th>
+                    <th class="col-pcard text-right">Pre&#231;o Cart&#227;o</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${atend.itens}">
+                    <td class="col-proc"
+                        th:text="${item.medicalProcedure != null ? item.medicalProcedure.name : '-'}">-</td>
+                    <td class="col-doctor"
+                        th:text="${item.doctor != null ? item.doctor.name : '-'}">-</td>
+                    <td class="col-price text-right"
+                        th:text="${#numbers.formatDecimal(item.price != null ? item.price : 0, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                    <td class="col-pcard text-right"
+                        th:text="${#numbers.formatDecimal(item.priceCard != null ? item.priceCard : 0, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ====== Grand totals ====== -->
+    <div class="grand-totals" th:if="${!atendimentos.isEmpty()}">
+        <span class="grand-totals-label">TOTAIS GERAIS</span>
+        <span class="grand-totals-values">
+            <span class="gt-row">
+                <span class="gt-cell">
+                    <span class="gt-cell-label">Valor Total</span>
+                    <span class="gt-cell-value"
+                          th:text="${#numbers.formatDecimal(sumTotalPrice, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+                </span>
+                <span class="gt-cell">
+                    <span class="gt-cell-label">Desconto</span>
+                    <span class="gt-cell-value"
+                          th:text="${#numbers.formatDecimal(sumValorDesconto, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+                </span>
+                <span class="gt-cell">
+                    <span class="gt-cell-label">Acr&#233;scimo</span>
+                    <span class="gt-cell-value"
+                          th:text="${#numbers.formatDecimal(sumValorAcrescimo, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+                </span>
+                <span class="gt-cell">
+                    <span class="gt-cell-label">Total Geral</span>
+                    <span class="gt-cell-value" style="color:#005293;"
+                          th:text="${#numbers.formatDecimal(sumTotalGeral, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+                </span>
+            </span>
+        </span>
+    </div>
+
+    <div class="empty-message" th:if="${atendimentos.isEmpty()}">
+        Nenhum atendimento encontrado para os filtros selecionados.
+    </div>
+
+</body>
+</html>

@@ -14,7 +14,7 @@ public record UserResponseDTO(
         String name,
         String login,
         String email,
-        String phone,
+            String phone,
         boolean active,
         BigDecimal percentualDesconto,
         List<RoleResponseDTO> roles

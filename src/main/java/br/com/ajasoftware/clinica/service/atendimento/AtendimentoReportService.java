@@ -1,7 +1,6 @@
 package br.com.ajasoftware.clinica.service.atendimento;
 
 import br.com.ajasoftware.clinica.domain.dto.atendimento.AtendimentoReciboItemDTO;
-import br.com.ajasoftware.clinica.domain.entity.User;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.Atendimento;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoConsultaExame;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoPagamento;
@@ -10,29 +9,19 @@ import br.com.ajasoftware.clinica.domain.entity.company.Company;
 import br.com.ajasoftware.clinica.domain.entity.medical.procedures.MedicalProcedure;
 import br.com.ajasoftware.clinica.repository.AtendimentoPagamentoRepository;
 import br.com.ajasoftware.clinica.repository.AtendimentoRepository;
-import br.com.ajasoftware.clinica.repository.CompanyRepository;
-import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import br.com.ajasoftware.clinica.service.relatorio.ReportRenderingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -40,25 +29,13 @@ public class AtendimentoReportService {
 
     private final AtendimentoRepository atendimentoRepository;
     private final AtendimentoPagamentoRepository pagamentoRepository;
-    private final CompanyRepository companyRepository;
-    private final TemplateEngine templateEngine;
+    private final ReportRenderingService reportRenderingService;
 
     @Transactional(readOnly = true)
     public byte[] generateEncaminhamento(Long id) {
         Atendimento atendimento = findOrThrow(id);
-        Company company = getCompany();
-        String logoBase64 = loadLogoBase64(company);
+        Company company = reportRenderingService.getCompany();
 
-        Context ctx = new Context(new Locale("pt", "BR"));
-        ctx.setVariable("atendimento", atendimento);
-        ctx.setVariable("company", company);
-        ctx.setVariable("logoBase64", logoBase64);
-        ctx.setVariable("printedAt", LocalDateTime.now());
-        ctx.setVariable("isOrcamento", atendimento.getStatus() == AtendimentoStatus.ABERTO);
-        ctx.setVariable("usuario", currentUser());
-        ctx.setVariable("observacaoCompleta", buildCombinedObservation(company, atendimento));
-
-        // Trigger lazy collections inside the transaction
         atendimento.getItens().forEach(item -> {
             if (item.getMedicalProcedure() != null) item.getMedicalProcedure().getName();
             if (item.getDoctor() != null) item.getDoctor().getName();
@@ -66,8 +43,12 @@ public class AtendimentoReportService {
         if (atendimento.getCliente() != null) atendimento.getCliente().getName();
         if (atendimento.getClinica() != null) atendimento.getClinica().getName();
 
-        String html = templateEngine.process("atendimento/encaminhamento", ctx);
-        return renderPdf(html);
+        Map<String, Object> vars = new HashMap<>();
+        vars.put("atendimento", atendimento);
+        vars.put("isOrcamento", atendimento.getStatus() == AtendimentoStatus.ABERTO);
+        vars.put("observacaoCompleta", buildCombinedObservation(company, atendimento));
+
+        return reportRenderingService.render("atendimento/encaminhamento", vars);
     }
 
     @Transactional(readOnly = true)
@@ -87,7 +68,6 @@ public class AtendimentoReportService {
 
         BigDecimal totalEfetivo = totalBruto.subtract(totalDesconto);
 
-        // Build proportionally adjusted item list
         List<AtendimentoConsultaExame> itens = atendimento.getItens();
         List<BigDecimal> originalPrices = itens.stream()
                 .map(item -> {
@@ -111,23 +91,6 @@ public class AtendimentoReportService {
                     adjusted));
         }
 
-        Company company = getCompany();
-        String logoBase64 = loadLogoBase64(company);
-
-        Context ctx = new Context(new Locale("pt", "BR"));
-        ctx.setVariable("atendimento", atendimento);
-        ctx.setVariable("pagamentos", pagamentos);
-        ctx.setVariable("totalBruto", totalBruto);
-        ctx.setVariable("totalDesconto", totalDesconto);
-        ctx.setVariable("totalEfetivo", totalEfetivo);
-        ctx.setVariable("originalTotal", originalTotal);
-        ctx.setVariable("items", items);
-        ctx.setVariable("company", company);
-        ctx.setVariable("logoBase64", logoBase64);
-        ctx.setVariable("printedAt", LocalDateTime.now());
-        ctx.setVariable("usuario", currentUser());
-
-        // Trigger lazy collections inside the transaction
         atendimento.getItens().forEach(item -> {
             if (item.getMedicalProcedure() != null) item.getMedicalProcedure().getName();
         });
@@ -136,8 +99,16 @@ public class AtendimentoReportService {
             atendimento.getCliente().getCpf();
         }
 
-        String html = templateEngine.process("atendimento/recibo", ctx);
-        return renderPdf(html);
+        Map<String, Object> vars = new HashMap<>();
+        vars.put("atendimento", atendimento);
+        vars.put("pagamentos", pagamentos);
+        vars.put("totalBruto", totalBruto);
+        vars.put("totalDesconto", totalDesconto);
+        vars.put("totalEfetivo", totalEfetivo);
+        vars.put("originalTotal", originalTotal);
+        vars.put("items", items);
+
+        return reportRenderingService.render("atendimento/recibo", vars);
     }
 
     private List<BigDecimal> calculateProportional(List<BigDecimal> originalPrices, BigDecimal originalTotal, BigDecimal targetTotal) {
@@ -147,7 +118,6 @@ public class AtendimentoReportService {
         BigDecimal assigned = BigDecimal.ZERO;
 
         if (originalTotal.compareTo(BigDecimal.ZERO) == 0) {
-            // Equal distribution when all item prices are zero
             BigDecimal each = originalPrices.size() == 1
                     ? targetTotal
                     : targetTotal.divide(new BigDecimal(originalPrices.size()), 2, RoundingMode.DOWN);
@@ -159,7 +129,6 @@ public class AtendimentoReportService {
             return result;
         }
 
-        // Proportional distribution; last item absorbs the cent remainder
         for (int i = 0; i < originalPrices.size() - 1; i++) {
             BigDecimal adjusted = originalPrices.get(i)
                     .multiply(targetTotal)
@@ -180,34 +149,6 @@ public class AtendimentoReportService {
         return item.getPrice();
     }
 
-    private User currentUser() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return principal instanceof User u ? u : null;
-    }
-
-    private byte[] renderPdf(String html) {
-        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-            PdfRendererBuilder builder = new PdfRendererBuilder();
-            builder.withHtmlContent(html, null);
-            builder.toStream(os);
-            builder.run();
-            return os.toByteArray();
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Erro ao gerar PDF: " + e.getMessage());
-        }
-    }
-
-    private Atendimento findOrThrow(Long id) {
-        return atendimentoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Atendimento não encontrado."));
-    }
-
-    private Company getCompany() {
-        return companyRepository.findAll().stream().findFirst().orElse(null);
-    }
-
     private String buildCombinedObservation(Company company, Atendimento atendimento) {
         String companyObs = (company != null && company.getObservacao() != null && !company.getObservacao().isBlank())
                 ? company.getObservacao().trim() : null;
@@ -219,20 +160,9 @@ public class AtendimentoReportService {
         return atendimentoObs;
     }
 
-    private String loadLogoBase64(Company company) {
-        if (company == null || company.getLogoUrl() == null) return null;
-        // logoUrl is /logos/filename.ext → file is at uploads/logos/filename.ext
-        String urlPath = company.getLogoUrl();
-        String filePath = "uploads" + urlPath;
-        try {
-            Path path = Paths.get(filePath);
-            if (!Files.exists(path)) return null;
-            byte[] bytes = Files.readAllBytes(path);
-            String ext = urlPath.substring(urlPath.lastIndexOf('.') + 1).toLowerCase();
-            String mimeType = "image/" + ("jpg".equals(ext) ? "jpeg" : ext);
-            return "data:" + mimeType + ";base64," + Base64.getEncoder().encodeToString(bytes);
-        } catch (IOException e) {
-            return null;
-        }
+    private Atendimento findOrThrow(Long id) {
+        return atendimentoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Atendimento não encontrado."));
     }
 }

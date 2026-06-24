@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import br.com.ajasoftware.clinica.domain.dto.users.UserSummaryDTO;
+
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -21,4 +23,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
             " (:#{#filter.id} IS NULL OR u.id = :#{#filter.id}) " +
             "AND (:#{#filter.name} IS NULL OR LOWER(u.name) LIKE LOWER(CONCAT('%', :#{#filter.name}, '%')))")
     Page<User> findWithFilter(@Param("filter") UserFilter filter, Pageable pageable);
+
+    @Query("""
+            SELECT new br.com.ajasoftware.clinica.domain.dto.users.UserSummaryDTO(
+                u.id, u.name, u.phone, u.active
+            )
+            FROM User u
+            WHERE (:#{#filter.id}   IS NULL OR u.id = :#{#filter.id})
+            AND   (:#{#filter.name} IS NULL OR LOWER(u.name) LIKE LOWER(CONCAT('%', :#{#filter.name}, '%')))
+            """)
+    Page<UserSummaryDTO> findSummaryWithFilter(@Param("filter") UserFilter filter, Pageable pageable);
 }

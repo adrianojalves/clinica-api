@@ -1,7 +1,9 @@
 package br.com.ajasoftware.clinica.repository;
 
+import br.com.ajasoftware.clinica.domain.dto.relatorio.atendimento.AtendimentoReportItemDTO;
 import br.com.ajasoftware.clinica.domain.dto.atendimento.AtendimentoResponseDTO;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.Atendimento;
+import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoStatus;
 import br.com.ajasoftware.clinica.domain.filter.atendimento.AtendimentoFilter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +11,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public interface AtendimentoRepository extends JpaRepository<Atendimento, Long> {
@@ -64,4 +69,57 @@ public interface AtendimentoRepository extends JpaRepository<Atendimento, Long> 
             AND   (:#{#filter.dataConsultaExameFim}    IS NULL OR a.dataConsultaExame     <= :#{#filter.dataConsultaExameFim})
             """)
     Page<AtendimentoResponseDTO> findWithFilters(@Param("filter") AtendimentoFilter filter, Pageable pageable);
+
+    @Query("""
+            SELECT new br.com.ajasoftware.clinica.domain.dto.relatorio.atendimento.AtendimentoReportItemDTO(
+                a.id,
+                a.cliente.name,
+                a.clinica.name,
+                a.usuario.name,
+                a.dataEmissao,
+                a.dataConsultaExame,
+                a.totalPrice,
+                a.valorDesconto,
+                a.valorAcrescimo
+            )
+            FROM Atendimento a
+            JOIN a.usuario
+            JOIN a.cliente
+            JOIN a.clinica
+            WHERE a.status = :status
+            AND (:clinicaId  IS NULL OR a.clinica.id  = :clinicaId)
+            AND (:clienteId  IS NULL OR a.cliente.id  = :clienteId)
+            AND (:usuarioId  IS NULL OR a.usuario.id  = :usuarioId)
+            AND (:dataInicial IS NULL OR a.dataEmissao >= :dataInicial)
+            AND (:dataFinal   IS NULL OR a.dataEmissao <= :dataFinal)
+            ORDER BY a.dataEmissao, a.id
+            """)
+    List<AtendimentoReportItemDTO> findForReport(
+            @Param("status") AtendimentoStatus status,
+            @Param("clinicaId") Long clinicaId,
+            @Param("clienteId") Long clienteId,
+            @Param("usuarioId") Long usuarioId,
+            @Param("dataInicial") LocalDateTime dataInicial,
+            @Param("dataFinal") LocalDateTime dataFinal);
+
+    @Query("""
+            SELECT a FROM Atendimento a
+            JOIN FETCH a.cliente
+            JOIN FETCH a.clinica
+            JOIN FETCH a.usuario
+            WHERE a.status = :status
+            AND (:clinicaId  IS NULL OR a.clinica.id  = :clinicaId)
+            AND (:clienteId  IS NULL OR a.cliente.id  = :clienteId)
+            AND (:usuarioId  IS NULL OR a.usuario.id  = :usuarioId)
+            AND (:dataInicial IS NULL OR a.dataEmissao >= :dataInicial)
+            AND (:dataFinal   IS NULL OR a.dataEmissao <= :dataFinal)
+            ORDER BY a.dataEmissao, a.id
+            """)
+    List<Atendimento> findEntitiesForReport(
+            @Param("status") AtendimentoStatus status,
+            @Param("clinicaId") Long clinicaId,
+            @Param("clienteId") Long clienteId,
+            @Param("usuarioId") Long usuarioId,
+            @Param("dataInicial") LocalDateTime dataInicial,
+            @Param("dataFinal") LocalDateTime dataFinal);
 }
