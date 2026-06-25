@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Relatório ABC de Procedimentos</title>
+
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 38mm 12mm 18mm 12mm;
+
+            @top-center {
+                content: element(page-header);
+                width: 100%;
+            }
+            @bottom-center {
+                content: element(page-footer);
+                width: 100%;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 9pt;
+            color: #2D3748;
+            line-height: 1.4;
+        }
+
+        /* ---- Running header ---- */
+        #page-header {
+            position: running(page-header);
+            width: 100%;
+            border-bottom: 2px solid #009B8E;
+            padding-bottom: 3mm;
+        }
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-logo-cell {
+            width: 28mm;
+            vertical-align: middle;
+            padding-right: 4mm;
+        }
+
+        .header-logo-img {
+            max-width: 26mm;
+            max-height: 22mm;
+        }
+
+        .header-logo-placeholder {
+            width: 26mm;
+            height: 22mm;
+            background-color: #F4F7F8;
+            border: 1px solid #CBD5E0;
+        }
+
+        .header-info-cell {
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .header-company-name {
+            font-size: 13pt;
+            font-weight: bold;
+            color: #005293;
+            display: block;
+        }
+
+        .header-cnpj {
+            font-size: 9pt;
+            color: #2D3748;
+            display: block;
+            margin-top: 1mm;
+        }
+
+        .header-contact {
+            font-size: 8pt;
+            color: #718096;
+            display: block;
+            margin-top: 1mm;
+        }
+
+        .header-address {
+            font-size: 7.5pt;
+            color: #718096;
+            display: block;
+            margin-top: 1mm;
+        }
+
+        /* ---- Running footer ---- */
+        #page-footer {
+            position: running(page-footer);
+            font-size: 7.5pt;
+            color: #718096;
+            white-space: nowrap;
+            border-top: 0.5pt solid #CBD5E0;
+            padding-top: 1.5mm;
+            width: 100%;
+            display: table;
+        }
+
+        .footer-left {
+            display: table-cell;
+            text-align: left;
+        }
+
+        .footer-right {
+            display: table-cell;
+            text-align: right;
+        }
+
+        /* ---- Report title + filters ---- */
+        .report-title {
+            text-align: center;
+            font-size: 12pt;
+            font-weight: bold;
+            color: #005293;
+            margin-bottom: 2mm;
+        }
+
+        .filters-section {
+            text-align: center;
+            font-size: 8pt;
+            color: #718096;
+            margin-bottom: 4mm;
+            padding-bottom: 3mm;
+            border-bottom: 1px solid #CBD5E0;
+        }
+
+        .filter-item {
+            display: inline;
+            margin: 0 3mm;
+        }
+
+        .filter-label {
+            font-weight: bold;
+            color: #2D3748;
+        }
+
+        /* ---- Data table ---- */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+            margin-bottom: 6mm;
+        }
+
+        /* Curva A header */
+        .curva-header-a td {
+            background-color: #2F855A;
+            color: #ffffff;
+            font-size: 10pt;
+            font-weight: bold;
+            padding: 2.5mm 3mm;
+        }
+
+        /* Curva B header */
+        .curva-header-b td {
+            background-color: #005293;
+            color: #ffffff;
+            font-size: 10pt;
+            font-weight: bold;
+            padding: 2.5mm 3mm;
+        }
+
+        /* Curva C header */
+        .curva-header-c td {
+            background-color: #718096;
+            color: #ffffff;
+            font-size: 10pt;
+            font-weight: bold;
+            padding: 2.5mm 3mm;
+        }
+
+        /* Column header rows inherit curva color via class */
+        .col-headers-a th {
+            background-color: #2F855A;
+            color: #ffffff;
+            padding: 2mm 2mm;
+            font-weight: bold;
+            font-size: 7.5pt;
+            border-top: 1px solid #ffffff;
+        }
+
+        .col-headers-b th {
+            background-color: #005293;
+            color: #ffffff;
+            padding: 2mm 2mm;
+            font-weight: bold;
+            font-size: 7.5pt;
+            border-top: 1px solid #ffffff;
+        }
+
+        .col-headers-c th {
+            background-color: #718096;
+            color: #ffffff;
+            padding: 2mm 2mm;
+            font-weight: bold;
+            font-size: 7.5pt;
+            border-top: 1px solid #ffffff;
+        }
+
+        .report-table tbody tr:nth-child(even) {
+            background-color: #F4F7F8;
+        }
+
+        .report-table tbody td {
+            padding: 1.5mm 2mm;
+            border-bottom: 1px solid #CBD5E0;
+            vertical-align: top;
+        }
+
+        .report-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Subtotal per curva */
+        .subtotal-a td {
+            background-color: #2F855A !important;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 7.5pt;
+            padding: 2mm 2mm;
+            border-bottom: none !important;
+        }
+
+        .subtotal-b td {
+            background-color: #005293 !important;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 7.5pt;
+            padding: 2mm 2mm;
+            border-bottom: none !important;
+        }
+
+        .subtotal-c td {
+            background-color: #718096 !important;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 7.5pt;
+            padding: 2mm 2mm;
+            border-bottom: none !important;
+        }
+
+        /* Grand total */
+        .grand-total-row td {
+            background-color: #2D3748 !important;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 8.5pt;
+            padding: 2.5mm 2mm;
+            border-bottom: none !important;
+        }
+
+        .col-rank       { width: 6%;  text-align: center; }
+        .col-procedimento { width: 54%; }
+        .col-quantidade { width: 14%; text-align: right; }
+        .col-pct-total  { width: 13%; text-align: right; }
+        .col-pct-acum   { width: 13%; text-align: right; }
+
+        .text-right  { text-align: right; }
+        .text-center { text-align: center; }
+
+        .empty-message {
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+            padding: 8mm 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ====== Running header ====== -->
+    <div id="page-header">
+        <table class="header-table">
+            <tr>
+                <td class="header-logo-cell">
+                    <img th:if="${logoBase64 != null}"
+                         th:src="${logoBase64}"
+                         alt="Logo"
+                         class="header-logo-img"/>
+                    <div th:if="${logoBase64 == null}" class="header-logo-placeholder"></div>
+                </td>
+                <td class="header-info-cell">
+                    <span class="header-company-name"
+                          th:text="${company != null ? company.corporateName : 'Empresa não configurada'}">
+                        Empresa
+                    </span>
+                    <span class="header-cnpj"
+                          th:if="${company != null and company.cnpj != null}"
+                          th:text="${'CNPJ: ' + company.cnpj}">
+                        CNPJ: 00.000.000/0000-00
+                    </span>
+                    <span class="header-contact" th:if="${company != null}">
+                        <th:block th:if="${company.phone != null}"
+                                  th:text="${company.phone}">Fone</th:block>
+                        <th:block th:if="${company.phone != null and company.email != null}"> &#160;|&#160; </th:block>
+                        <th:block th:if="${company.email != null}"
+                                  th:text="${company.email}">Email</th:block>
+                    </span>
+                    <span class="header-address"
+                          th:if="${company != null
+                                  and company.address != null
+                                  and company.address.logradouro != null}">
+                        <th:block th:text="${company.address.logradouro}"></th:block><th:block th:if="${company.address.numero != null}">, <th:block th:text="${company.address.numero}"></th:block></th:block><th:block th:if="${company.address.bairro != null}"> - <th:block th:text="${company.address.bairro}"></th:block></th:block><th:block th:if="${company.address.cidade != null}">, <th:block th:text="${company.address.cidade}"></th:block></th:block><th:block th:if="${company.address.uf != null}">/<th:block th:text="${company.address.uf}"></th:block></th:block><th:block th:if="${company.address.cep != null}"> - CEP: <th:block th:text="${company.address.cep}"></th:block></th:block>
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ====== Running footer ====== -->
+    <div id="page-footer">
+        <span class="footer-left"
+              th:text="${usuario != null ? usuario.name : ''}">Usuário</span>
+        <span class="footer-right">
+            <span th:text="${#temporals.format(printedAt, 'dd/MM/yyyy HH:mm')}">00/00/0000 00:00</span>
+        </span>
+    </div>
+
+    <!-- ====== Report content ====== -->
+    <div class="report-title">Relatório ABC de Procedimentos</div>
+
+    <div class="filters-section" th:if="${!filtrosAplicados.isEmpty()}">
+        <span class="filter-item" th:each="entry : ${filtrosAplicados}">
+            <span class="filter-label" th:text="${entry.key + ':'}">Filtro:</span>
+            <span th:text="${entry.value}">Valor</span>
+        </span>
+    </div>
+
+    <div th:if="${totalGeral > 0}">
+
+        <th:block th:each="grupo : ${curvas}" th:if="${!grupo.itens().isEmpty()}">
+
+            <table class="report-table">
+                <thead>
+                    <tr th:class="${'curva-header-' + #strings.toLowerCase(grupo.curva())}">
+                        <td colspan="5" th:text="${'Curva ' + grupo.curva()}">Curva A</td>
+                    </tr>
+                    <tr th:class="${'col-headers-' + #strings.toLowerCase(grupo.curva())}">
+                        <th class="col-rank text-center">#</th>
+                        <th class="col-procedimento">Procedimento</th>
+                        <th class="col-quantidade text-right">Quantidade</th>
+                        <th class="col-pct-total text-right">% do Total</th>
+                        <th class="col-pct-acum text-right">% Acumulado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${grupo.itens()}">
+                        <td class="col-rank text-center" th:text="${item.rank()}">1</td>
+                        <td class="col-procedimento" th:text="${item.procedimentoName()}">Procedimento</td>
+                        <td class="col-quantidade text-right" th:text="${item.quantidade()}">0</td>
+                        <td class="col-pct-total text-right"
+                            th:text="${#numbers.formatDecimal(item.percentualTotal(), 1, 'POINT', 2, 'COMMA') + '%'}">0,00%</td>
+                        <td class="col-pct-acum text-right"
+                            th:text="${#numbers.formatDecimal(item.percentualAcumulado(), 1, 'POINT', 2, 'COMMA') + '%'}">0,00%</td>
+                    </tr>
+                    <tr th:class="${'subtotal-' + #strings.toLowerCase(grupo.curva())}">
+                        <td colspan="2" class="text-right">TOTAL CURVA</td>
+                        <td class="text-right" th:text="${grupo.sumQuantidade()}">0</td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </th:block>
+
+        <!-- Grand total -->
+        <table class="report-table">
+            <tbody>
+                <tr class="grand-total-row">
+                    <td class="col-rank"></td>
+                    <td class="col-procedimento text-right">TOTAL GERAL</td>
+                    <td class="col-quantidade text-right" th:text="${totalGeral}">0</td>
+                    <td class="col-pct-total"></td>
+                    <td class="col-pct-acum"></td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+    <div class="empty-message" th:if="${totalGeral == 0}">
+        Nenhum procedimento encontrado para os filtros selecionados.
+    </div>
+
+</body>
+</html>

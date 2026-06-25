@@ -2,6 +2,7 @@ package br.com.ajasoftware.clinica.repository;
 
 import br.com.ajasoftware.clinica.domain.dto.relatorio.atendimento.AtendimentoReportItemDTO;
 import br.com.ajasoftware.clinica.domain.dto.atendimento.AtendimentoResponseDTO;
+import br.com.ajasoftware.clinica.domain.dto.relatorio.repasse.RepasseReportItemDTO;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.Atendimento;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoStatus;
 import br.com.ajasoftware.clinica.domain.filter.atendimento.AtendimentoFilter;
@@ -120,6 +121,75 @@ public interface AtendimentoRepository extends JpaRepository<Atendimento, Long> 
             @Param("clinicaId") Long clinicaId,
             @Param("clienteId") Long clienteId,
             @Param("usuarioId") Long usuarioId,
+            @Param("dataInicial") LocalDateTime dataInicial,
+            @Param("dataFinal") LocalDateTime dataFinal);
+
+    @Query("""
+            SELECT new br.com.ajasoftware.clinica.domain.dto.relatorio.repasse.RepasseReportItemDTO(
+                a.id,
+                a.cliente.name,
+                a.clinica.name,
+                a.dataEmissao,
+                a.totalPrice,
+                a.valorAcrescimo,
+                a.valorDesconto,
+                a.totalTransferValue,
+                a.totalTransferValueCard
+            )
+            FROM Atendimento a
+            JOIN a.cliente
+            JOIN a.clinica
+            WHERE a.status = 'ENCAMINHADO'
+            AND (:clinicaId   IS NULL OR a.clinica.id  = :clinicaId)
+            AND (:dataInicial IS NULL OR a.dataEmissao >= :dataInicial)
+            AND (:dataFinal   IS NULL OR a.dataEmissao <= :dataFinal)
+            ORDER BY a.clinica.name, a.id
+            """)
+    List<RepasseReportItemDTO> findForRepasseReport(
+            @Param("clinicaId") Long clinicaId,
+            @Param("dataInicial") LocalDateTime dataInicial,
+            @Param("dataFinal") LocalDateTime dataFinal);
+
+    @Query("""
+            SELECT a.clinica.id, a.clinica.name, COUNT(a)
+            FROM Atendimento a
+            WHERE a.status = 'ENCAMINHADO'
+            AND (:clinicaId   IS NULL OR a.clinica.id  = :clinicaId)
+            AND (:dataInicial IS NULL OR a.dataEmissao >= :dataInicial)
+            AND (:dataFinal   IS NULL OR a.dataEmissao <= :dataFinal)
+            GROUP BY a.clinica.id, a.clinica.name
+            ORDER BY a.clinica.name
+            """)
+    List<Object[]> countAtendimentosByClinica(
+            @Param("clinicaId") Long clinicaId,
+            @Param("dataInicial") LocalDateTime dataInicial,
+            @Param("dataFinal") LocalDateTime dataFinal);
+
+    @Query("""
+            SELECT a.clinica.id, SUM(a.totalPrice + a.valorAcrescimo - a.valorDesconto)
+            FROM Atendimento a
+            WHERE a.status = 'ENCAMINHADO'
+            AND (:clinicaId   IS NULL OR a.clinica.id  = :clinicaId)
+            AND (:dataInicial IS NULL OR a.dataEmissao >= :dataInicial)
+            AND (:dataFinal   IS NULL OR a.dataEmissao <= :dataFinal)
+            GROUP BY a.clinica.id
+            """)
+    List<Object[]> sumFaturamentoBrutoByClinica(
+            @Param("clinicaId") Long clinicaId,
+            @Param("dataInicial") LocalDateTime dataInicial,
+            @Param("dataFinal") LocalDateTime dataFinal);
+
+    @Query("""
+            SELECT a.clinica.id, SUM(a.totalTransferValue + a.totalTransferValueCard)
+            FROM Atendimento a
+            WHERE a.status = 'ENCAMINHADO'
+            AND (:clinicaId   IS NULL OR a.clinica.id  = :clinicaId)
+            AND (:dataInicial IS NULL OR a.dataEmissao >= :dataInicial)
+            AND (:dataFinal   IS NULL OR a.dataEmissao <= :dataFinal)
+            GROUP BY a.clinica.id
+            """)
+    List<Object[]> sumRepasseByClinica(
+            @Param("clinicaId") Long clinicaId,
             @Param("dataInicial") LocalDateTime dataInicial,
             @Param("dataFinal") LocalDateTime dataFinal);
 }
