@@ -70,8 +70,10 @@ public class ClinicService {
     @Transactional
     public ClinicResponseDTO create(ClinicRequestDTO data) {
         validarClinic(data);
-        if (clinicRepository.existsByCnpj(data.cnpj())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Operação falhou: O CNPJ informado já está cadastrado.");
+        if (data.cnpj() != null && !data.cnpj().trim().isEmpty()) {
+            if (clinicRepository.existsByCnpj(data.cnpj())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Operação falhou: O CNPJ informado já está cadastrado.");
+            }
         }
 
         Clinic clinic = new Clinic();
@@ -137,7 +139,7 @@ public class ClinicService {
         String numeros = cnpj.replaceAll("\\D", "");
 
         if (numeros.length() != 14 || numeros.matches("(\\d)\\1{13}")) {
-            throw new BusinessException("O CNPJ informado é inválido.");
+            throw new BusinessException("cnpj", "O CNPJ informado é inválido.");
         }
 
         try {
@@ -160,11 +162,11 @@ public class ClinicService {
 
             if (digito1 != Character.getNumericValue(numeros.charAt(12)) ||
                     digito2 != Character.getNumericValue(numeros.charAt(13))) {
-                throw new BusinessException("O CNPJ informado é inválido.");
+                throw new BusinessException("cnpj", "O CNPJ informado é inválido.");
             }
 
         } catch (Exception e) {
-            throw new BusinessException("O CNPJ informado é inválido.");
+            throw new BusinessException("cnpj", "O CNPJ informado é inválido.");
         }
     }
 }

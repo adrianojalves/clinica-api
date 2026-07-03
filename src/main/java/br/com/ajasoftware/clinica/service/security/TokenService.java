@@ -11,8 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 
 /**
  * Service responsible for creating and validating JSON Web Tokens (JWT).
@@ -128,9 +127,9 @@ public class TokenService {
 
     /**
      * Calculates the expiration date based on the provided minutes.
-     * Timezone is set to UTC-3 (Brasília time).
+     * Calculated in UTC-independent Instant format.
      */
     private Instant generateExpirationDate(int minutesToAdd) {
-        return LocalDateTime.now().plusMinutes(minutesToAdd).toInstant(ZoneOffset.of("-03:00"));
+        return Instant.now().plus(minutesToAdd, ChronoUnit.MINUTES);
     }
 }

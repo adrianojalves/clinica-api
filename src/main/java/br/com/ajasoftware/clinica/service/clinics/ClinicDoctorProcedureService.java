@@ -29,7 +29,25 @@ public class ClinicDoctorProcedureService {
     private final MedicalProcedureRepository medicalProcedureRepository;
 
     @Transactional(readOnly = true)
-    public Page<ClinicDoctorProcedureResponseDTO>   listWithFilters(ClinicDoctorProcedureFilterDTO filter, Pageable pageable) {
+    public Page<ClinicDoctorProcedureResponseDTO> listWithFilters(ClinicDoctorProcedureFilterDTO filter, Pageable pageable) {
+        if (filter.getClinicId() != null && filter.getClinicId() <= 0) {
+            filter.setClinicId(null);
+        }
+        if (filter.getDoctorId() != null && filter.getDoctorId() <= 0) {
+            filter.setDoctorId(null);
+        }
+        if (filter.getMedicalProcedureId() != null && filter.getMedicalProcedureId() <= 0) {
+            filter.setMedicalProcedureId(null);
+        }
+        if (filter.getClinicName() != null && filter.getClinicName().isBlank()) {
+            filter.setClinicName(null);
+        }
+        if (filter.getDoctorName() != null && filter.getDoctorName().isBlank()) {
+            filter.setDoctorName(null);
+        }
+        if (filter.getProcedureName() != null && filter.getProcedureName().isBlank()) {
+            filter.setProcedureName(null);
+        }
         return repository.findWithFilters(filter, pageable)
                 .map(ClinicDoctorProcedureResponseDTO::new);
     }

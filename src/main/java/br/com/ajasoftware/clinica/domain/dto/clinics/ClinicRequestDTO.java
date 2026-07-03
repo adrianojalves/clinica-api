@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import org.hibernate.validator.constraints.br.CNPJ;
 
+import br.com.ajasoftware.clinica.infrastructure.validation.OptionalCNPJ;
+
 import java.math.BigDecimal;
 
 /**
@@ -13,6 +15,7 @@ public record ClinicRequestDTO(
         @NotBlank(message = "O nome é obrigatório.")
         String name,
 
+        @OptionalCNPJ(message = "O CNPJ informado é inválido.")
         String cnpj,
 
         @NotBlank(message = "O telefone principal é obrigatório.")

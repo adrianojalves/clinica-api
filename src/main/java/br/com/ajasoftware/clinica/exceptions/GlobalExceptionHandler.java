@@ -48,7 +48,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<List<ValidationErrorData>> handleBusinessException(BusinessException ex) {
-        ValidationErrorData error = new ValidationErrorData("global", ex.getMessage());
+        ValidationErrorData error = new ValidationErrorData(ex.getField(), ex.getMessage());
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
