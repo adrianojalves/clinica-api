@@ -107,6 +107,7 @@ public class AtendimentoReportService {
         vars.put("totalEfetivo", totalEfetivo);
         vars.put("originalTotal", originalTotal);
         vars.put("items", items);
+        vars.put("isOrcamento", atendimento.getStatus() == AtendimentoStatus.ABERTO);
 
         return reportRenderingService.render("atendimento/recibo", vars);
     }

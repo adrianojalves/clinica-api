@@ -79,6 +79,8 @@
 </head>
 <body>
 
+    <div class="watermark" th:if="${isOrcamento}">ORÇAMENTO</div>
+
     <!-- Cabeçalho corrente compartilhado -->
     <div th:replace="~{atendimento/report-common :: page-header}"></div>
 

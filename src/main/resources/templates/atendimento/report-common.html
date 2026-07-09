@@ -130,10 +130,18 @@
                 text-align: right;
             }
 
-            .footer-orcamento {
+            .watermark {
+                position: fixed;
+                top: 45%;
+                left: -20%;
+                width: 140%;
+                text-align: center;
+                font-size: 55pt;
                 font-weight: bold;
-                color: #C53030;
-                margin-right: 4mm;
+                color: #FEE2E2; /* Light pastel red */
+                transform: rotate(-35deg);
+                transform-origin: 50% 50%;
+                z-index: -1000;
             }
 
             /* -------------------------------------------------------------- */
@@ -257,8 +265,6 @@
         <span class="footer-left"
               th:text="${usuario != null ? usuario.name : ''}">Atendente</span>
         <span class="footer-right">
-            <span class="footer-orcamento"
-                  th:if="${isOrcamento != null and isOrcamento}">ORÇAMENTO</span>
             <span th:text="${#temporals.format(printedAt, 'dd/MM/yyyy HH:mm')}">00/00/0000 00:00</span>
         </span>
     </div>

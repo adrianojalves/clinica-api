@@ -5,6 +5,7 @@ import br.com.ajasoftware.clinica.domain.dto.atendimento.AtendimentoRequestDTO;
 import br.com.ajasoftware.clinica.domain.dto.atendimento.AtendimentoResponseDTO;
 import br.com.ajasoftware.clinica.domain.entity.User;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.Atendimento;
+import br.com.ajasoftware.clinica.domain.entity.log.Log;
 import org.springframework.security.core.context.SecurityContextHolder;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoConsultaExame;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoPagamento;
@@ -39,6 +40,7 @@ public class AtendimentoService {
     private final MedicalProcedureRepository medicalProcedureRepository;
     private final AtendimentoPagamentoRepository atendimentoPagamentoRepository;
     private final AtendimentoTotalsCalculator totalsCalculator;
+    private final LogRepository logRepository;
 
     // -------------------------------------------------------------------------
     // Queries
@@ -86,7 +88,43 @@ public class AtendimentoService {
     @Transactional
     public void delete(Long id) {
         Atendimento atendimento = findOrThrow(id);
-        requireAberto(atendimento);
+        
+        if (atendimento.getStatus() != AtendimentoStatus.ABERTO && atendimento.getStatus() != AtendimentoStatus.ENCAMINHADO) {
+            throw new BusinessException(
+                    "Este atendimento não pode ser excluído pois seu status é " +
+                    atendimento.getStatus().name() + ".");
+        }
+
+        if (atendimento.getStatus() == AtendimentoStatus.ENCAMINHADO) {
+            User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            
+            String clienteNome = atendimento.getCliente() != null ? atendimento.getCliente().getName() : "Não informado";
+            String clinicaNome = atendimento.getClinica() != null ? atendimento.getClinica().getName() : "Não informada";
+            
+            java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            String dataConsultaStr = atendimento.getDataConsultaExame() != null 
+                    ? atendimento.getDataConsultaExame().format(formatter) 
+                    : "Não informada";
+            
+            java.math.BigDecimal totalDinheiro = atendimento.getTotalPrice() != null ? atendimento.getTotalPrice() : java.math.BigDecimal.ZERO;
+            java.math.BigDecimal totalCartao = atendimento.getTotalPriceCard() != null ? atendimento.getTotalPriceCard() : java.math.BigDecimal.ZERO;
+            
+            String logMessage = String.format(
+                    "Atendimento ENCAMINHADO excluído - ID: %d | Cliente: %s | Clínica: %s | Data Consulta: %s | Valor Total (Dinheiro): R$ %,.2f | Valor Total (Cartão): R$ %,.2f",
+                    atendimento.getId(),
+                    clienteNome,
+                    clinicaNome,
+                    dataConsultaStr,
+                    totalDinheiro,
+                    totalCartao
+            );
+            
+            Log log = new Log();
+            log.setLog(logMessage);
+            log.setUser(loggedInUser);
+            logRepository.save(log);
+        }
+
         atendimentoRepository.delete(atendimento);
     }
 

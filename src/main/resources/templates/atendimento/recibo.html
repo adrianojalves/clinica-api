@@ -111,6 +111,8 @@
 </head>
 <body>
 
+    <div class="watermark" th:if="${isOrcamento}">ORÇAMENTO</div>
+
     <div th:replace="~{atendimento/report-common :: page-header}"></div>
     <div th:replace="~{atendimento/report-common :: page-footer}"></div>
 
