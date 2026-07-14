@@ -16,7 +16,8 @@ public record ClinicDoctorProcedureResponseDTO(
         BigDecimal transferValue,
         BigDecimal price,
         BigDecimal transferValueCard,
-        BigDecimal priceCard
+        BigDecimal priceCard,
+        BigDecimal pricePartner
 ) {
     public ClinicDoctorProcedureResponseDTO(ClinicDoctorProcedure entity) {
         this(
@@ -31,7 +32,8 @@ public record ClinicDoctorProcedureResponseDTO(
                 entity.getTransferValue(),
                 entity.getPrice(),
                 entity.getTransferValueCard(),
-                entity.getPriceCard()
+                entity.getPriceCard(),
+                entity.getPricePartner()
         );
     }
 }

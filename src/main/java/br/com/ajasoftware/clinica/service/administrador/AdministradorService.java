@@ -114,6 +114,7 @@ public class AdministradorService {
             cdp.setTransferValue(transferValue);
             cdp.setPriceCard(BigDecimal.ZERO);
             cdp.setTransferValueCard(BigDecimal.ZERO);
+            cdp.setPricePartner(price);
             cdpRepository.save(cdp);
             batchCdpKeys.add(cdpKey);
             vinculosCriados++;

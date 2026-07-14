@@ -17,6 +17,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.util.List;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.web.multipart.MultipartFile;
+import br.com.ajasoftware.clinica.utils.ExcelUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -124,10 +133,118 @@ public class ClinicDoctorProcedureService {
         entity.setPrice(data.price());
         entity.setTransferValueCard(data.transferValueCard());
         entity.setPriceCard(data.priceCard());
+        entity.setPricePartner(data.pricePartner() != null ? data.pricePartner() : data.price());
     }
 
     private ClinicDoctorProcedure findEntityById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Configuração de procedimento não encontrada."));
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] exportToExcel(Long clinicId) {
+        List<ClinicDoctorProcedure> procedures = repository.findByClinicId(clinicId);
+
+        String[] headers = {
+                "ID", "ID Clínica", "Nome Clínica", "ID Dr", "Nome DR",
+                "ID Procedimento", "Nome Procedimento", "Repasse", "Valor", "Valor Clínica"
+        };
+
+        return ExcelUtils.exportToExcel("Procedures", headers, procedures, (proc, row) -> {
+            // id
+            row.createCell(0).setCellValue(proc.getId());
+            // clinic.id
+            row.createCell(1).setCellValue(proc.getClinic().getId());
+            // clinic.name
+            row.createCell(2).setCellValue(proc.getClinic().getName());
+
+            // doctor.id (0 se não existir)
+            long docId = proc.getDoctor() != null ? proc.getDoctor().getId() : 0L;
+            row.createCell(3).setCellValue(docId);
+
+            // doctor.name (vazio se não existir)
+            String docName = proc.getDoctor() != null ? proc.getDoctor().getName() : "";
+            row.createCell(4).setCellValue(docName);
+
+            // medicalProcedure.id
+            row.createCell(5).setCellValue(proc.getMedicalProcedure().getId());
+            // medicalProcedure.name
+            row.createCell(6).setCellValue(proc.getMedicalProcedure().getName());
+
+            // transferValue (valor repasse)
+            double transfer = proc.getTransferValue() != null ? proc.getTransferValue().doubleValue() : 0.0;
+            row.createCell(7).setCellValue(transfer);
+
+            // price
+            double priceVal = proc.getPrice() != null ? proc.getPrice().doubleValue() : 0.0;
+            row.createCell(8).setCellValue(priceVal);
+
+            // pricePartner (0 se não existir conteúdo)
+            double partner = proc.getPricePartner() != null ? proc.getPricePartner().doubleValue() : 0.0;
+            row.createCell(9).setCellValue(partner);
+        });
+    }
+
+    @Transactional
+    public void importAndUpdateFromExcel(MultipartFile file) {
+        try (InputStream is = file.getInputStream();
+             Workbook workbook = new XSSFWorkbook(is)) {
+            
+            Sheet sheet = workbook.getSheetAt(0);
+            if (sheet == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Planilha vazia ou inválida.");
+            }
+
+            int lastRowNum = sheet.getLastRowNum();
+            for (int i = 1; i <= lastRowNum; i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) {
+                    continue;
+                }
+
+                Long id = ExcelUtils.getLongCellValue(row.getCell(0));
+                if (id == null) {
+                    continue; // Skip if no ID
+                }
+
+                ClinicDoctorProcedure entity = repository.findById(id).orElse(null);
+                if (entity == null) {
+                    continue; // Skip if entity not found
+                }
+
+                BigDecimal transferValueExcel = ExcelUtils.getBigDecimalCellValue(row.getCell(7));
+                BigDecimal priceExcel = ExcelUtils.getBigDecimalCellValue(row.getCell(8));
+                BigDecimal pricePartnerExcel = ExcelUtils.getBigDecimalCellValue(row.getCell(9));
+
+                boolean modified = false;
+
+                if (areDifferent(entity.getTransferValue(), transferValueExcel)) {
+                    entity.setTransferValue(transferValueExcel);
+                    modified = true;
+                }
+
+                if (areDifferent(entity.getPrice(), priceExcel)) {
+                    entity.setPrice(priceExcel);
+                    modified = true;
+                }
+
+                if (areDifferent(entity.getPricePartner(), pricePartnerExcel)) {
+                    entity.setPricePartner(pricePartnerExcel);
+                    modified = true;
+                }
+
+                if (modified) {
+                    repository.save(entity);
+                }
+            }
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro ao processar o arquivo Excel: " + e.getMessage(), e);
+        }
+    }
+
+    private boolean areDifferent(BigDecimal bd1, BigDecimal bd2) {
+        if (bd1 == null && bd2 == null) return false;
+        if (bd1 == null || bd2 == null) return true;
+        return bd1.compareTo(bd2) != 0;
     }
 }

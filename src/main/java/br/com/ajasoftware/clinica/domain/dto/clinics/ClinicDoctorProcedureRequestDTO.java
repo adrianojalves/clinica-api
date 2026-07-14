@@ -24,7 +24,10 @@ public record ClinicDoctorProcedureRequestDTO(
         BigDecimal transferValueCard,
 
         @DecimalMin(value = "0.0", message = "O valor total de cartão não pode ser negativo.")
-        BigDecimal priceCard
+        BigDecimal priceCard,
+
+        @DecimalMin(value = "0.0", message = "O valor parceiro não pode ser negativo.")
+        BigDecimal pricePartner
 ) {
         public ClinicDoctorProcedureRequestDTO {
                 if (doctorId != null && doctorId == 0) {

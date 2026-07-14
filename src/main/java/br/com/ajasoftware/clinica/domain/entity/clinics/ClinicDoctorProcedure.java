@@ -53,4 +53,7 @@ public class ClinicDoctorProcedure {
 
     @Column(name = "price_card", nullable = false)
     private BigDecimal priceCard;
+
+    @Column(name = "price_partner", nullable = false)
+    private BigDecimal pricePartner;
 }

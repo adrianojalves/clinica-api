@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface ClinicDoctorProcedureRepository extends JpaRepository<ClinicDoctorProcedure, Long> {
 
     /**
@@ -78,4 +80,6 @@ public interface ClinicDoctorProcedureRepository extends JpaRepository<ClinicDoc
             @Param("filter") ClinicDoctorProcedureFilterDTO filter,
             Pageable pageable
     );
+
+    List<ClinicDoctorProcedure> findByClinicId(Long clinicId);
 }
