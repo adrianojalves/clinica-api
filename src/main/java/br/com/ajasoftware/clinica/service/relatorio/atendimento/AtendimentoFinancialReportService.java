@@ -4,6 +4,7 @@ import br.com.ajasoftware.clinica.domain.dto.relatorio.atendimento.AtendimentoPa
 import br.com.ajasoftware.clinica.domain.dto.relatorio.atendimento.AtendimentoReportFilter;
 import br.com.ajasoftware.clinica.domain.dto.relatorio.atendimento.AtendimentoReportItemDTO;
 import br.com.ajasoftware.clinica.domain.dto.relatorio.atendimento.AtendimentoReportType;
+import br.com.ajasoftware.clinica.domain.dto.relatorio.atendimento.AtendimentoSinteticoItensReportItemDTO;
 import br.com.ajasoftware.clinica.domain.entity.atendimento.Atendimento;
 import br.com.ajasoftware.clinica.repository.AtendimentoPagamentoRepository;
 import br.com.ajasoftware.clinica.repository.AtendimentoRepository;
@@ -41,8 +42,89 @@ public class AtendimentoFinancialReportService {
     public byte[] generate(AtendimentoReportFilter filter) {
         return switch (filter.getTipo()) {
             case SINTETICO -> generateSintetico(filter);
+            case SINTETICO_ITENS -> generateSinteticoItens(filter);
             case ANALITICO_ITENS -> generateAnaliticoItens(filter);
             case ANALITICO_FORMA_PAGAMENTO -> generateAnaliticoFormaPagamento(filter);
+        };
+    }
+
+    private byte[] generateSinteticoItens(AtendimentoReportFilter filter) {
+        LocalDateTime dataInicial = filter.getDataEmissaoInicial() != null
+                ? filter.getDataEmissaoInicial().atStartOfDay() : null;
+        LocalDateTime dataFinal = filter.getDataEmissaoFinal() != null
+                ? filter.getDataEmissaoFinal().atTime(LocalTime.MAX) : null;
+
+        List<Atendimento> atendimentos = atendimentoRepository.findEntitiesForReport(
+                filter.getStatus(),
+                filter.getClinicaId(),
+                filter.getClienteId(),
+                filter.getUsuarioId(),
+                dataInicial,
+                dataFinal);
+
+        // Fetch lazy relations
+        atendimentos.forEach(a -> a.getItens().forEach(item -> {
+            if (item.getMedicalProcedure() != null) item.getMedicalProcedure().getName();
+        }));
+
+        List<AtendimentoSinteticoItensReportItemDTO> itensDTO = atendimentos.stream().map(a -> {
+            String exames = a.getItens().stream()
+                    .map(item -> item.getMedicalProcedure() != null ? item.getMedicalProcedure().getName() : "")
+                    .filter(name -> !name.isEmpty())
+                    .collect(java.util.stream.Collectors.joining(", "));
+
+            BigDecimal valor = BigDecimal.ZERO;
+            String formasPagamento = "";
+
+            if (a.getStatus() == br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoStatus.ABERTO) {
+                valor = a.getItens().stream()
+                        .map(item -> item.getPrice() != null ? item.getPrice() : BigDecimal.ZERO)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+            } else if (a.getStatus() == br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoStatus.ENCAMINHADO) {
+                List<br.com.ajasoftware.clinica.domain.entity.atendimento.AtendimentoPagamento> pagamentos = 
+                        pagamentoRepository.findByAtendimentoId(a.getId());
+                valor = pagamentos.stream()
+                        .map(p -> p.getValor() != null ? p.getValor() : BigDecimal.ZERO)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                formasPagamento = pagamentos.stream()
+                        .map(p -> p.getTipoPagamento())
+                        .filter(java.util.Objects::nonNull)
+                        .map(tipo -> getTipoPagamentoLabel(tipo))
+                        .distinct()
+                        .collect(java.util.stream.Collectors.joining(", "));
+            }
+
+            return new AtendimentoSinteticoItensReportItemDTO(
+                    a.getDataConsultaExame(),
+                    a.getCliente() != null ? a.getCliente().getName() : "",
+                    exames,
+                    valor,
+                    formasPagamento,
+                    a.getClinica() != null ? a.getClinica().getName() : ""
+            );
+        }).toList();
+
+        BigDecimal sumValor = itensDTO.stream()
+                .map(item -> item.valor() != null ? item.valor() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        Map<String, String> filtrosAplicados = buildFilterSummary(filter);
+
+        Map<String, Object> vars = new HashMap<>();
+        vars.put("itens", itensDTO);
+        vars.put("filtrosAplicados", filtrosAplicados);
+        vars.put("sumValor", sumValor);
+
+        return reportRenderingService.render("financeiro/atendimento/relatorio-sintetico-itens", vars);
+    }
+
+    private String getTipoPagamentoLabel(br.com.ajasoftware.clinica.domain.entity.atendimento.TipoPagamento tipo) {
+        if (tipo == null) return "";
+        return switch (tipo) {
+            case DINHEIRO -> "Dinheiro";
+            case CARTAO_CREDITO -> "Cartão Crédito";
+            case CARTAO_DEBITO -> "Cartão Débito";
+            case PIX -> "PIX";
         };
     }
 

@@ -161,4 +161,39 @@ class ReportRenderingUnitTest {
             fos.write(pdfBytes);
         }
     }
+
+    @Test
+    void testRenderRelatorioSinteticoItens() throws Exception {
+        Company company = new Company();
+        company.setCorporateName("Clinica Teste Ltda");
+        when(companyRepository.findAll()).thenReturn(List.of(company));
+
+        List<br.com.ajasoftware.clinica.domain.dto.relatorio.atendimento.AtendimentoSinteticoItensReportItemDTO> itens = List.of(
+                new br.com.ajasoftware.clinica.domain.dto.relatorio.atendimento.AtendimentoSinteticoItensReportItemDTO(
+                        java.time.LocalDate.now(),
+                        "Paciente Teste",
+                        "Exame A, Exame B",
+                        new BigDecimal("250.00"),
+                        "Dinheiro, PIX",
+                        "Clínica Centro"
+                )
+        );
+
+        Map<String, Object> vars = new HashMap<>();
+        vars.put("itens", itens);
+        vars.put("filtrosAplicados", Map.of("Clínica", "Clínica Centro"));
+        vars.put("sumValor", new BigDecimal("250.00"));
+
+        byte[] pdfBytes = reportRenderingService.render("financeiro/atendimento/relatorio-sintetico-itens", vars);
+
+        assertNotNull(pdfBytes);
+        assertTrue(pdfBytes.length > 0);
+        assertEquals(0x25, pdfBytes[0]);
+
+        File outputDir = new File("target/test-reports");
+        outputDir.mkdirs();
+        try (FileOutputStream fos = new FileOutputStream(new File(outputDir, "sintetico-itens-test.pdf"))) {
+            fos.write(pdfBytes);
+        }
+    }
 }
