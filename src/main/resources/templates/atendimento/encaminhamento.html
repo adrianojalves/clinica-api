@@ -100,8 +100,12 @@
 
                 <div class="master-row">
                     <span class="master-label">Cliente:</span>
-                    <span class="master-value"
-                          th:text="${atendimento.cliente.name}">—</span>
+                    <span class="master-value">
+                        <th:block th:text="${atendimento.cliente.name}">—</th:block><th:block th:if="${atendimento.cliente.phone != null and !#strings.isEmpty(atendimento.cliente.phone)}"> – <th:block th:text="${atendimento.cliente.phone}"></th:block></th:block>
+                        <th:block th:if="${atendimento.cliente.address != null and atendimento.cliente.address.logradouro != null}">
+                            <br/><span style="font-size:7pt; color:#718096;"><th:block th:text="${atendimento.cliente.address.logradouro}"></th:block><th:block th:if="${atendimento.cliente.address.numero != null}">, <th:block th:text="${atendimento.cliente.address.numero}"></th:block></th:block><th:block th:if="${atendimento.cliente.address.bairro != null}"> - <th:block th:text="${atendimento.cliente.address.bairro}"></th:block></th:block><th:block th:if="${atendimento.cliente.address.cidade != null}">, <th:block th:text="${atendimento.cliente.address.cidade}"></th:block></th:block><th:block th:if="${atendimento.cliente.address.uf != null}">/<th:block th:text="${atendimento.cliente.address.uf}"></th:block></th:block><th:block th:if="${atendimento.cliente.address.cep != null}"> – CEP: <th:block th:text="${atendimento.cliente.address.cep}"></th:block></th:block></span>
+                        </th:block>
+                    </span>
                 </div>
 
                 <div class="master-row">
