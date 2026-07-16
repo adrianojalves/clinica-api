@@ -3,9 +3,9 @@ package br.com.ajasoftware.clinica.domain.dto.relatorio.repasse;
 import java.math.BigDecimal;
 import java.util.List;
 
-public record RepasseClinicaGroupDTO(
-        String clinicaName,
-        List<RepassePeriodGroupDTO> periodGroups,
+public record RepassePeriodGroupDTO(
+        String periodLabel,
+        List<RepasseReportItemDTO> itens,
         BigDecimal sumTotalPrice,
         BigDecimal sumValorAcrescimo,
         BigDecimal sumValorDesconto,

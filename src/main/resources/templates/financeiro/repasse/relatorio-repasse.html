@@ -219,6 +219,26 @@
         .text-right  { text-align: right; }
         .text-center { text-align: center; }
 
+        /* Period header row */
+        .period-header-row td {
+            background-color: #E2E8F0;
+            color: #2D3748;
+            font-size: 8pt;
+            font-weight: bold;
+            padding: 1.5mm 3mm;
+            border-bottom: 1px solid #CBD5E0;
+        }
+
+        /* Period subtotal row */
+        .period-subtotal-row td {
+            background-color: #EDF2F7;
+            color: #2D3748;
+            font-weight: bold;
+            font-size: 7.5pt;
+            padding: 1.5mm 2mm;
+            border-bottom: 1px solid #CBD5E0;
+        }
+
         .empty-message {
             text-align: center;
             color: #718096;
@@ -309,24 +329,50 @@
                 </tr>
             </thead>
             <tbody>
-                <tr th:each="item : ${grupo.itens()}">
-                    <td class="col-id text-center" th:text="${item.id()}">1</td>
-                    <td class="col-cliente" th:text="${item.clienteName()}">Cliente</td>
-                    <td class="col-emissao text-center"
-                        th:text="${#temporals.format(item.dataEmissao(), 'dd/MM/yyyy')}">01/01/2026</td>
-                    <td class="col-valor text-right"
-                        th:text="${#numbers.formatDecimal(item.totalPrice() != null ? item.totalPrice() : 0, 1, 'POINT', 2, 'COMMA')}">0,00</td>
-                    <td class="col-acrescimo text-right"
-                        th:text="${#numbers.formatDecimal(item.valorAcrescimo() != null ? item.valorAcrescimo() : 0, 1, 'POINT', 2, 'COMMA')}">0,00</td>
-                    <td class="col-desconto text-right"
-                        th:text="${#numbers.formatDecimal(item.valorDesconto() != null ? item.valorDesconto() : 0, 1, 'POINT', 2, 'COMMA')}">0,00</td>
-                    <td class="col-total-geral text-right"
-                        th:text="${#numbers.formatDecimal(item.totalGeral(), 1, 'POINT', 2, 'COMMA')}">0,00</td>
-                    <td class="col-transferido text-right"
-                        th:text="${#numbers.formatDecimal(item.totalTransferido(), 1, 'POINT', 2, 'COMMA')}">0,00</td>
-                    <td class="col-saldo text-right"
-                        th:text="${#numbers.formatDecimal(item.saldo(), 1, 'POINT', 2, 'COMMA')}">0,00</td>
-                </tr>
+                <th:block th:each="period : ${grupo.periodGroups()}">
+                    <!-- Period Header (only if periodLabel is not null) -->
+                    <tr th:if="${period.periodLabel() != null}" class="period-header-row">
+                        <td colspan="9" th:text="${period.periodLabel()}">Período</td>
+                    </tr>
+                    
+                    <!-- Items -->
+                    <tr th:each="item : ${period.itens()}">
+                        <td class="col-id text-center" th:text="${item.id()}">1</td>
+                        <td class="col-cliente" th:text="${item.clienteName()}">Cliente</td>
+                        <td class="col-emissao text-center"
+                            th:text="${#temporals.format(item.dataEmissao(), 'dd/MM/yyyy')}">01/01/2026</td>
+                        <td class="col-valor text-right"
+                            th:text="${#numbers.formatDecimal(item.totalPrice() != null ? item.totalPrice() : 0, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                        <td class="col-acrescimo text-right"
+                            th:text="${#numbers.formatDecimal(item.valorAcrescimo() != null ? item.valorAcrescimo() : 0, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                        <td class="col-desconto text-right"
+                            th:text="${#numbers.formatDecimal(item.valorDesconto() != null ? item.valorDesconto() : 0, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                        <td class="col-total-geral text-right"
+                            th:text="${#numbers.formatDecimal(item.totalGeral(), 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                        <td class="col-transferido text-right"
+                            th:text="${#numbers.formatDecimal(item.totalTransferido(), 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                        <td class="col-saldo text-right"
+                            th:text="${#numbers.formatDecimal(item.saldo(), 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                    </tr>
+
+                    <!-- Period Subtotal (only if periodLabel is not null) -->
+                    <tr th:if="${period.periodLabel() != null}" class="period-subtotal-row">
+                        <td colspan="3" class="text-right" th:text="${'SUBTOTAL ' + period.periodLabel()}">SUBTOTAL PERÍODO</td>
+                        <td class="text-right"
+                            th:text="${#numbers.formatDecimal(period.sumTotalPrice(), 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                        <td class="text-right"
+                            th:text="${#numbers.formatDecimal(period.sumValorAcrescimo(), 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                        <td class="text-right"
+                            th:text="${#numbers.formatDecimal(period.sumValorDesconto(), 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                        <td class="text-right"
+                            th:text="${#numbers.formatDecimal(period.sumTotalGeral(), 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                        <td class="text-right"
+                            th:text="${#numbers.formatDecimal(period.sumTotalTransferido(), 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                        <td class="text-right"
+                            th:text="${#numbers.formatDecimal(period.sumSaldo(), 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                    </tr>
+                </th:block>
+
                 <!-- Clinic subtotal -->
                 <tr class="subtotal-row">
                     <td colspan="3" class="text-right">TOTAL CLÍNICA</td>

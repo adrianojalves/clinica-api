@@ -50,6 +50,10 @@ public class Clinic {
 
     private BigDecimal percentual;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "period_payment", nullable = false)
+    private PeriodPayment periodPayment = PeriodPayment.MENSAL;
+
     @Column(name = "data_criacao", updatable = false)
     private LocalDateTime createdAt;
 

@@ -2,6 +2,7 @@ package br.com.ajasoftware.clinica.domain.dto.clinics;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+import br.com.ajasoftware.clinica.domain.entity.clinics.PeriodPayment;
 
 import java.math.BigDecimal;
 
@@ -24,6 +25,8 @@ public record ClinicUpdateDTO(
         @DecimalMin(value = "0.0", inclusive = true, message = "O percentual não pode ser negativo.")
         @DecimalMax(value = "100.0", inclusive = true, message = "O percentual não pode ser maior que 100.")
         BigDecimal percentual,
+
+        PeriodPayment periodPayment,
 
         @NotNull(message = "Os dados de endereço são obrigatórios.")
         @Valid

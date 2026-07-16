@@ -12,4 +12,5 @@ public class RepasseReportFilter {
     private Long clinicaId;
     private LocalDate dataEmissaoInicial;
     private LocalDate dataEmissaoFinal;
+    private RepasseReportType tipoRelatorio;
 }

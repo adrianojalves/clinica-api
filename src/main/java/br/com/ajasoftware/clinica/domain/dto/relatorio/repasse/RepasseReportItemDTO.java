@@ -1,5 +1,6 @@
 package br.com.ajasoftware.clinica.domain.dto.relatorio.repasse;
 
+import br.com.ajasoftware.clinica.domain.entity.clinics.PeriodPayment;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -12,7 +13,8 @@ public record RepasseReportItemDTO(
         BigDecimal valorAcrescimo,
         BigDecimal valorDesconto,
         BigDecimal totalTransferValue,
-        BigDecimal totalTransferValueCard
+        BigDecimal totalTransferValueCard,
+        PeriodPayment periodPayment
 ) {
     private static BigDecimal safe(BigDecimal v) {
         return v != null ? v : BigDecimal.ZERO;

@@ -1,6 +1,7 @@
 package br.com.ajasoftware.clinica.domain.dto.clinics;
 
 import br.com.ajasoftware.clinica.domain.entity.clinics.Clinic;
+import br.com.ajasoftware.clinica.domain.entity.clinics.PeriodPayment;
 
 import java.math.BigDecimal;
 
@@ -18,6 +19,7 @@ public record ClinicResponseDTO(
         String email,
         Boolean active,
         BigDecimal percentual,
+        PeriodPayment periodPayment,
         AddressDataDTO address
 ) {
     public ClinicResponseDTO(Clinic clinic) {
@@ -31,6 +33,7 @@ public record ClinicResponseDTO(
                 clinic.getEmail(),
                 clinic.getActive(),
                 clinic.getPercentual(),
+                clinic.getPeriodPayment(),
                 clinic.getAddress() != null ? new AddressDataDTO(
                         clinic.getAddress().getLogradouro(),
                         clinic.getAddress().getBairro(),

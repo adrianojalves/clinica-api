@@ -5,6 +5,7 @@ import br.com.ajasoftware.clinica.domain.dto.clinics.ClinicResponseDTO;
 import br.com.ajasoftware.clinica.domain.dto.clinics.ClinicUpdateDTO;
 import br.com.ajasoftware.clinica.domain.entity.address.Address;
 import br.com.ajasoftware.clinica.domain.entity.clinics.Clinic;
+import br.com.ajasoftware.clinica.domain.entity.clinics.PeriodPayment;
 import br.com.ajasoftware.clinica.domain.filter.clinics.ClinicFilter;
 import br.com.ajasoftware.clinica.exceptions.BusinessException;
 import br.com.ajasoftware.clinica.repository.ClinicRepository;
@@ -84,6 +85,7 @@ public class ClinicService {
         clinic.setSite(data.site());
         clinic.setEmail(data.email());
         clinic.setPercentual(data.percentual());
+        clinic.setPeriodPayment(data.periodPayment() != null ? data.periodPayment() : PeriodPayment.MENSAL);
 
         Address address = new Address(
                 data.address().logradouro(),
@@ -115,6 +117,7 @@ public class ClinicService {
         clinic.setSite(data.site());
         clinic.setEmail(data.email());
         clinic.setPercentual(data.percentual());
+        clinic.setPeriodPayment(data.periodPayment() != null ? data.periodPayment() : PeriodPayment.MENSAL);
 
         clinic.getAddress().updateInfo(data.address());
 

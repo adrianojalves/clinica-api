@@ -134,7 +134,8 @@ public interface AtendimentoRepository extends JpaRepository<Atendimento, Long> 
                 a.valorAcrescimo,
                 a.valorDesconto,
                 a.totalTransferValue,
-                a.totalTransferValueCard
+                a.totalTransferValueCard,
+                a.clinica.periodPayment
             )
             FROM Atendimento a
             JOIN a.cliente

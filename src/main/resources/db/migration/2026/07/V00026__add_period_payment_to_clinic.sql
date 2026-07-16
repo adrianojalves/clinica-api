@@ -1,0 +1,2 @@
+ALTER TABLE table_clinica
+    ADD COLUMN period_payment VARCHAR(20) NOT NULL DEFAULT 'MENSAL';
