@@ -169,12 +169,11 @@ public class AtendimentoService {
 
         if (atendimento.getCodigoGuia() == null) {
             Long codigoGuiaAtual = clinic.getCodigoGuia();
-            if (codigoGuiaAtual == null || codigoGuiaAtual <= 0) {
-                codigoGuiaAtual = 1L;
+            if (codigoGuiaAtual != null && codigoGuiaAtual != 0L) {
+                atendimento.setCodigoGuia(codigoGuiaAtual);
+                clinic.setCodigoGuia(codigoGuiaAtual + 1);
+                clinicRepository.save(clinic);
             }
-            atendimento.setCodigoGuia(codigoGuiaAtual);
-            clinic.setCodigoGuia(codigoGuiaAtual + 1);
-            clinicRepository.save(clinic);
         }
 
         totalsCalculator.recalculateWithPayments(atendimento, pagamentos);
