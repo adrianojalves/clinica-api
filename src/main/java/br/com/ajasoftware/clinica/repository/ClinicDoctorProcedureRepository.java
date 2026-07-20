@@ -62,7 +62,7 @@ public interface ClinicDoctorProcedureRepository extends JpaRepository<ClinicDoc
             AND   (:#{#filter.medicalProcedureId} IS NULL OR mp.id = :#{#filter.medicalProcedureId})
             AND   (:#{#filter.clinicName}     IS NULL OR LOWER(c.name)  LIKE LOWER(CONCAT('%', :#{#filter.clinicName},     '%')))
             AND   (:#{#filter.doctorName}     IS NULL OR LOWER(d.name)  LIKE LOWER(CONCAT('%', :#{#filter.doctorName},     '%')))
-            AND   (:#{#filter.procedureName}  IS NULL OR LOWER(mp.name) LIKE LOWER(CONCAT('%', :#{#filter.procedureName},  '%')))
+            AND   (:#{#filter.procedureName}  IS NULL OR LOWER(mp.name) LIKE LOWER(CONCAT('%', :#{#filter.procedureName},  '%')) OR (mp.tag IS NOT NULL AND LOWER(mp.tag) LIKE LOWER(CONCAT('%', :#{#filter.procedureName}, '%'))))
             """,
             countQuery = """
             SELECT COUNT(cdp) FROM ClinicDoctorProcedure cdp
@@ -74,7 +74,7 @@ public interface ClinicDoctorProcedureRepository extends JpaRepository<ClinicDoc
             AND   (:#{#filter.medicalProcedureId} IS NULL OR mp.id = :#{#filter.medicalProcedureId})
             AND   (:#{#filter.clinicName}     IS NULL OR LOWER(c.name)  LIKE LOWER(CONCAT('%', :#{#filter.clinicName},     '%')))
             AND   (:#{#filter.doctorName}     IS NULL OR LOWER(d.name)  LIKE LOWER(CONCAT('%', :#{#filter.doctorName},     '%')))
-            AND   (:#{#filter.procedureName}  IS NULL OR LOWER(mp.name) LIKE LOWER(CONCAT('%', :#{#filter.procedureName},  '%')))
+            AND   (:#{#filter.procedureName}  IS NULL OR LOWER(mp.name) LIKE LOWER(CONCAT('%', :#{#filter.procedureName},  '%')) OR (mp.tag IS NOT NULL AND LOWER(mp.tag) LIKE LOWER(CONCAT('%', :#{#filter.procedureName}, '%'))))
             """)
     Page<ClinicDoctorProcedure> findWithFilters(
             @Param("filter") ClinicDoctorProcedureFilterDTO filter,
@@ -82,4 +82,17 @@ public interface ClinicDoctorProcedureRepository extends JpaRepository<ClinicDoc
     );
 
     List<ClinicDoctorProcedure> findByClinicId(Long clinicId);
+
+    @Query("""
+        SELECT c FROM ClinicDoctorProcedure c
+        WHERE c.clinic.id = :clinicId
+        AND (:doctorId IS NULL OR c.doctor.id = :doctorId OR c.doctor.id IS NULL)
+        AND c.medicalProcedure.id = :medicalProcedureId
+        ORDER BY c.doctor.id DESC NULLS LAST
+        """)
+    List<ClinicDoctorProcedure> findMatchingConfigurations(
+            @Param("clinicId") Long clinicId,
+            @Param("doctorId") Long doctorId,
+            @Param("medicalProcedureId") Long medicalProcedureId
+    );
 }

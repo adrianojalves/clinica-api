@@ -10,7 +10,8 @@ public record ProcedureResponseDTO(
         String name,
         String description,
         ProcedureType type,
-        Boolean active
+        Boolean active,
+        String tag
 ) {
     public ProcedureResponseDTO(MedicalProcedure procedure) {
         this(
@@ -18,7 +19,8 @@ public record ProcedureResponseDTO(
                 procedure.getName(),
                 procedure.getDescription(),
                 procedure.getType(),
-                procedure.getActive()
+                procedure.getActive(),
+                procedure.getTag()
         );
     }
 }

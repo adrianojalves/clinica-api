@@ -93,10 +93,23 @@
     <div class="content-wrapper">
         <div>
 
-            <div class="report-title">Relatório de Encaminhamento</div>
+            <div style="display: table; width: 100%; border-bottom: 1px solid #CBD5E0; margin-bottom: 5mm; padding-bottom: 2mm;">
+                <div style="display: table-cell; text-align: left; vertical-align: middle; font-size: 12pt; font-weight: bold; color: #005293;">
+                    Relatório de Encaminhamento
+                </div>
+                <div style="display: table-cell; text-align: right; font-size: 10pt; font-weight: bold; color: #005293; vertical-align: middle;"
+                     th:if="${atendimento.codigoGuia != null}">
+                    GUIA Nº: <span th:text="${atendimento.codigoGuia}">722022027</span>
+                </div>
+            </div>
 
             <!-- Dados master -->
             <div class="master-section">
+
+                <div class="master-row" th:if="${atendimento.codigoGuia != null}">
+                    <span class="master-label">Código da Guia:</span>
+                    <span class="master-value" style="font-weight: bold; color: #005293;" th:text="${atendimento.codigoGuia}">722022027</span>
+                </div>
 
                 <div class="master-row">
                     <span class="master-label">Cliente:</span>
@@ -162,7 +175,7 @@
                 <tbody>
                     <tr th:each="item : ${atendimento.itens}">
                         <td class="col-descricao"
-                            th:text="${item.medicalProcedure.name}">—</td>
+                            th:text="${itemProcedimentoNomes != null and itemProcedimentoNomes.containsKey(item.id) ? itemProcedimentoNomes.get(item.id) : item.medicalProcedure.name}">—</td>
                         <td class="col-medico"
                             th:text="${item.doctor != null ? item.doctor.name : '—'}">—</td>
                     </tr>

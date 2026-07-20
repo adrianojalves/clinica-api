@@ -13,12 +13,18 @@ public record ClinicDoctorProcedureResponseDTO(
         Long medicalProcedureId,
         String procedureName,
         String procedureType,
+        String procedureTag,
         BigDecimal transferValue,
         BigDecimal price,
         BigDecimal transferValueCard,
         BigDecimal priceCard,
-        BigDecimal pricePartner
+        BigDecimal pricePartner,
+        String codigoClinica
 ) {
+    public ClinicDoctorProcedureResponseDTO(Long id, Long clinicId, String clinicName, Long doctorId, String doctorName, Long medicalProcedureId, String procedureName, String procedureType, String procedureTag, BigDecimal transferValue, BigDecimal price, BigDecimal transferValueCard, BigDecimal priceCard, BigDecimal pricePartner) {
+        this(id, clinicId, clinicName, doctorId, doctorName, medicalProcedureId, procedureName, procedureType, procedureTag, transferValue, price, transferValueCard, priceCard, pricePartner, null);
+    }
+
     public ClinicDoctorProcedureResponseDTO(ClinicDoctorProcedure entity) {
         this(
                 entity.getId(),
@@ -29,11 +35,13 @@ public record ClinicDoctorProcedureResponseDTO(
                 entity.getMedicalProcedure().getId(),
                 entity.getMedicalProcedure().getName(),
                 entity.getMedicalProcedure().getType().name(),
+                entity.getMedicalProcedure().getTag(),
                 entity.getTransferValue(),
                 entity.getPrice(),
                 entity.getTransferValueCard(),
                 entity.getPriceCard(),
-                entity.getPricePartner()
+                entity.getPricePartner(),
+                entity.getCodigoClinica()
         );
     }
 }

@@ -54,6 +54,9 @@ public class Clinic {
     @Column(name = "period_payment", nullable = false)
     private PeriodPayment periodPayment = PeriodPayment.MENSAL;
 
+    @Column(name = "codigo_guia")
+    private Long codigoGuia;
+
     @Column(name = "data_criacao", updatable = false)
     private LocalDateTime createdAt;
 

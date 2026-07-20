@@ -15,12 +15,12 @@ public interface MedicalProcedureRepository extends JpaRepository<MedicalProcedu
      * Follows the established project architecture for repositories.
      */
     @Query("SELECT p FROM MedicalProcedure p WHERE p.active = true AND " +
-            "(:#{#filter.name} IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :#{#filter.name}, '%'))) AND " +
+            "(:#{#filter.name} IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :#{#filter.name}, '%')) OR (p.tag IS NOT NULL AND LOWER(p.tag) LIKE LOWER(CONCAT('%', :#{#filter.name}, '%')))) AND " +
             "(:#{#filter.type} IS NULL OR p.type = :#{#filter.type})")
     Page<MedicalProcedure> findActiveWithFilters(@Param("filter") ProcedureFilterDTO filter, Pageable pageable);
 
     @Query("SELECT p FROM MedicalProcedure p WHERE " +
-            "(:#{#filter.name} IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :#{#filter.name}, '%'))) AND " +
+            "(:#{#filter.name} IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :#{#filter.name}, '%')) OR (p.tag IS NOT NULL AND LOWER(p.tag) LIKE LOWER(CONCAT('%', :#{#filter.name}, '%')))) AND " +
             "(:#{#filter.type} IS NULL OR p.type = :#{#filter.type})")
     Page<MedicalProcedure> findWithFilters(@Param("filter") ProcedureFilterDTO filter, Pageable pageable);
 }

@@ -26,6 +26,7 @@ public class MedicalProcedure {
     @Enumerated(EnumType.STRING)
     private ProcedureType type;
 
+    private String tag;
     private Boolean active;
 
     @Column(name = "data_criacao", updatable = false)

@@ -86,6 +86,7 @@ public class ClinicService {
         clinic.setEmail(data.email());
         clinic.setPercentual(data.percentual());
         clinic.setPeriodPayment(data.periodPayment() != null ? data.periodPayment() : PeriodPayment.MENSAL);
+        clinic.setCodigoGuia(data.codigoGuia());
 
         Address address = new Address(
                 data.address().logradouro(),
@@ -118,6 +119,9 @@ public class ClinicService {
         clinic.setEmail(data.email());
         clinic.setPercentual(data.percentual());
         clinic.setPeriodPayment(data.periodPayment() != null ? data.periodPayment() : PeriodPayment.MENSAL);
+        if (data.codigoGuia() != null) {
+            clinic.setCodigoGuia(data.codigoGuia());
+        }
 
         clinic.getAddress().updateInfo(data.address());
 

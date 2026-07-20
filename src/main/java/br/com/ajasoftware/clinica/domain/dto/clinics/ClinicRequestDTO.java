@@ -33,8 +33,13 @@ public record ClinicRequestDTO(
         BigDecimal percentual,
 
         PeriodPayment periodPayment,
+        Long codigoGuia,
 
         @NotNull(message = "Os dados de endereço são obrigatórios.")
         @Valid
         AddressDataDTO address
-) {}
+) {
+    public ClinicRequestDTO(String name, String cnpj, String fone1, String fone2, String site, String email, BigDecimal percentual, PeriodPayment periodPayment, AddressDataDTO address) {
+        this(name, cnpj, fone1, fone2, site, email, percentual, periodPayment, null, address);
+    }
+}

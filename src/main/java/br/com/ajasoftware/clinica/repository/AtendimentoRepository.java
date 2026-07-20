@@ -39,7 +39,8 @@ public interface AtendimentoRepository extends JpaRepository<Atendimento, Long> 
                 a.totalTransferValueCard,
                 a.totalPriceCard,
                 a.valorDesconto,
-                a.valorAcrescimo
+                a.valorAcrescimo,
+                a.codigoGuia
             )
             FROM Atendimento a
             JOIN a.usuario
@@ -108,7 +109,7 @@ public interface AtendimentoRepository extends JpaRepository<Atendimento, Long> 
             JOIN FETCH a.cliente
             JOIN FETCH a.clinica
             JOIN FETCH a.usuario
-            WHERE a.status = :status
+            WHERE (:status IS NULL OR a.status = :status)
             AND (:clinicaId  IS NULL OR a.clinica.id  = :clinicaId)
             AND (:clienteId  IS NULL OR a.cliente.id  = :clienteId)
             AND (:usuarioId  IS NULL OR a.usuario.id  = :usuarioId)

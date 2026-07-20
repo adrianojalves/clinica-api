@@ -33,7 +33,8 @@ public record AtendimentoResponseDTO(
         BigDecimal totalTransferValueCard,
         BigDecimal totalPriceCard,
         BigDecimal valorDesconto,
-        BigDecimal valorAcrescimo
+        BigDecimal valorAcrescimo,
+        Long codigoGuia
 ) {
     public AtendimentoResponseDTO(Atendimento entity) {
         this(
@@ -55,7 +56,8 @@ public record AtendimentoResponseDTO(
                 entity.getTotalTransferValueCard(),
                 entity.getTotalPriceCard(),
                 entity.getValorDesconto(),
-                entity.getValorAcrescimo()
+                entity.getValorAcrescimo(),
+                entity.getCodigoGuia()
         );
     }
 }

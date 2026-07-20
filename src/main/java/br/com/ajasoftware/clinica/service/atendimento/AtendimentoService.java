@@ -163,6 +163,20 @@ public class AtendimentoService {
             }
         }
 
+        // Lock clinic row for update to prevent concurrency race conditions on codigoGuia
+        Clinic clinic = clinicRepository.findByIdForUpdate(atendimento.getClinica().getId())
+                .orElse(atendimento.getClinica());
+
+        if (atendimento.getCodigoGuia() == null) {
+            Long codigoGuiaAtual = clinic.getCodigoGuia();
+            if (codigoGuiaAtual == null || codigoGuiaAtual <= 0) {
+                codigoGuiaAtual = 1L;
+            }
+            atendimento.setCodigoGuia(codigoGuiaAtual);
+            clinic.setCodigoGuia(codigoGuiaAtual + 1);
+            clinicRepository.save(clinic);
+        }
+
         totalsCalculator.recalculateWithPayments(atendimento, pagamentos);
         atendimento.setStatus(AtendimentoStatus.ENCAMINHADO);
         atendimentoRepository.save(atendimento);

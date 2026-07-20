@@ -56,4 +56,7 @@ public class ClinicDoctorProcedure {
 
     @Column(name = "price_partner", nullable = false)
     private BigDecimal pricePartner;
+
+    @Column(name = "codigo_clinica")
+    private String codigoClinica;
 }

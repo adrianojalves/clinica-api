@@ -27,11 +27,17 @@ public record ClinicDoctorProcedureRequestDTO(
         BigDecimal priceCard,
 
         @DecimalMin(value = "0.0", message = "O valor parceiro não pode ser negativo.")
-        BigDecimal pricePartner
+        BigDecimal pricePartner,
+
+        String codigoClinica
 ) {
         public ClinicDoctorProcedureRequestDTO {
                 if (doctorId != null && doctorId == 0) {
                         doctorId = null;
                 }
+        }
+
+        public ClinicDoctorProcedureRequestDTO(Long clinicId, Long doctorId, Long medicalProcedureId, BigDecimal transferValue, BigDecimal price, BigDecimal transferValueCard, BigDecimal priceCard, BigDecimal pricePartner) {
+                this(clinicId, doctorId, medicalProcedureId, transferValue, price, transferValueCard, priceCard, pricePartner, null);
         }
 }

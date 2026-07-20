@@ -9,6 +9,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
+import java.util.Optional;
+
 /**
  * Repository interface for Clinic entity operations.
  */
@@ -21,6 +25,10 @@ public interface ClinicRepository extends JpaRepository<Clinic, Long> {
     boolean existsByCnpj(String cnpj);
 
     boolean existsByNameIgnoreCase(String name);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT c FROM Clinic c WHERE c.id = :id")
+    Optional<Clinic> findByIdForUpdate(@Param("id") Long id);
 
     /**
      * Retrieves a paginated list of clinics applying dynamic filters (Name or CNPJ).

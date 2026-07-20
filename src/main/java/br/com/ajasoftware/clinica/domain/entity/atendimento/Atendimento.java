@@ -77,6 +77,9 @@ public class Atendimento {
     @Column(name = "valor_acrescimo", nullable = false, precision = 10, scale = 2)
     private BigDecimal valorAcrescimo = BigDecimal.ZERO;
 
+    @Column(name = "codigo_guia")
+    private Long codigoGuia;
+
     @OneToMany(mappedBy = "atendimento", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<AtendimentoConsultaExame> itens = new ArrayList<>();
 

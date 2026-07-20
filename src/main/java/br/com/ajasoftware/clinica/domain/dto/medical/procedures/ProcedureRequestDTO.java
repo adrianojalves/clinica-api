@@ -16,5 +16,7 @@ public record ProcedureRequestDTO(
         @NotNull(message = "O tipo (EXAME ou CONSULTA) é obrigatório.")
         ProcedureType type,
 
-        Boolean active
+        Boolean active,
+
+        String tag
 ) {}

@@ -20,8 +20,13 @@ public record ClinicResponseDTO(
         Boolean active,
         BigDecimal percentual,
         PeriodPayment periodPayment,
+        Long codigoGuia,
         AddressDataDTO address
 ) {
+    public ClinicResponseDTO(Long id, String name, String cnpj, String fone1, String fone2, String site, String email, Boolean active, BigDecimal percentual, PeriodPayment periodPayment, AddressDataDTO address) {
+        this(id, name, cnpj, fone1, fone2, site, email, active, percentual, periodPayment, null, address);
+    }
+
     public ClinicResponseDTO(Clinic clinic) {
         this(
                 clinic.getId(),
@@ -34,6 +39,7 @@ public record ClinicResponseDTO(
                 clinic.getActive(),
                 clinic.getPercentual(),
                 clinic.getPeriodPayment(),
+                clinic.getCodigoGuia(),
                 clinic.getAddress() != null ? new AddressDataDTO(
                         clinic.getAddress().getLogradouro(),
                         clinic.getAddress().getBairro(),

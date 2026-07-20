@@ -134,6 +134,7 @@ public class ClinicDoctorProcedureService {
         entity.setTransferValueCard(data.transferValueCard());
         entity.setPriceCard(data.priceCard());
         entity.setPricePartner(data.pricePartner() != null ? data.pricePartner() : data.price());
+        entity.setCodigoClinica(data.codigoClinica());
     }
 
     private ClinicDoctorProcedure findEntityById(Long id) {
@@ -147,7 +148,7 @@ public class ClinicDoctorProcedureService {
 
         String[] headers = {
                 "ID", "ID Clínica", "Nome Clínica", "ID Dr", "Nome DR",
-                "ID Procedimento", "Nome Procedimento", "Repasse", "Valor", "Valor Clínica"
+                "ID Procedimento", "Nome Procedimento", "Repasse", "Valor", "Valor Clínica", "Código Clínica"
         };
 
         return ExcelUtils.exportToExcel("Procedures", headers, procedures, (proc, row) -> {
@@ -182,6 +183,9 @@ public class ClinicDoctorProcedureService {
             // pricePartner (0 se não existir conteúdo)
             double partner = proc.getPricePartner() != null ? proc.getPricePartner().doubleValue() : 0.0;
             row.createCell(9).setCellValue(partner);
+
+            // codigoClinica
+            row.createCell(10).setCellValue(proc.getCodigoClinica() != null ? proc.getCodigoClinica() : "");
         });
     }
 
@@ -215,6 +219,7 @@ public class ClinicDoctorProcedureService {
                 BigDecimal transferValueExcel = ExcelUtils.getBigDecimalCellValue(row.getCell(7));
                 BigDecimal priceExcel = ExcelUtils.getBigDecimalCellValue(row.getCell(8));
                 BigDecimal pricePartnerExcel = ExcelUtils.getBigDecimalCellValue(row.getCell(9));
+                String codigoClinicaExcel = ExcelUtils.getStringCellValue(row.getCell(10));
 
                 boolean modified = false;
 
@@ -230,6 +235,11 @@ public class ClinicDoctorProcedureService {
 
                 if (areDifferent(entity.getPricePartner(), pricePartnerExcel)) {
                     entity.setPricePartner(pricePartnerExcel);
+                    modified = true;
+                }
+
+                if (row.getLastCellNum() >= 11 && !java.util.Objects.equals(entity.getCodigoClinica(), codigoClinicaExcel)) {
+                    entity.setCodigoClinica(codigoClinicaExcel);
                     modified = true;
                 }
 

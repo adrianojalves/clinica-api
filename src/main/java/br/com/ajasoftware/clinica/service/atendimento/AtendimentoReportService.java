@@ -23,12 +23,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import br.com.ajasoftware.clinica.domain.entity.clinics.ClinicDoctorProcedure;
+import br.com.ajasoftware.clinica.repository.ClinicDoctorProcedureRepository;
+
 @Service
 @RequiredArgsConstructor
 public class AtendimentoReportService {
 
     private final AtendimentoRepository atendimentoRepository;
     private final AtendimentoPagamentoRepository pagamentoRepository;
+    private final ClinicDoctorProcedureRepository clinicDoctorProcedureRepository;
     private final ReportRenderingService reportRenderingService;
 
     @Transactional(readOnly = true)
@@ -43,10 +47,37 @@ public class AtendimentoReportService {
         if (atendimento.getCliente() != null) atendimento.getCliente().getName();
         if (atendimento.getClinica() != null) atendimento.getClinica().getName();
 
+        Long clinicaId = atendimento.getClinica() != null ? atendimento.getClinica().getId() : null;
+
+        Map<Long, String> itemProcedimentoNomes = new HashMap<>();
+        for (AtendimentoConsultaExame item : atendimento.getItens()) {
+            if (item.getMedicalProcedure() != null) {
+                Long doctorId = item.getDoctor() != null ? item.getDoctor().getId() : null;
+                Long procedureId = item.getMedicalProcedure().getId();
+                String baseName = item.getMedicalProcedure().getName();
+
+                List<ClinicDoctorProcedure> configs =
+                        clinicDoctorProcedureRepository.findMatchingConfigurations(clinicaId, doctorId, procedureId);
+
+                String codigoClinica = configs.stream()
+                        .map(ClinicDoctorProcedure::getCodigoClinica)
+                        .filter(c -> c != null && !c.isBlank())
+                        .findFirst()
+                        .orElse(null);
+
+                if (codigoClinica != null) {
+                    itemProcedimentoNomes.put(item.getId(), codigoClinica.trim() + " - " + baseName);
+                } else {
+                    itemProcedimentoNomes.put(item.getId(), baseName);
+                }
+            }
+        }
+
         Map<String, Object> vars = new HashMap<>();
         vars.put("atendimento", atendimento);
         vars.put("isOrcamento", atendimento.getStatus() == AtendimentoStatus.ABERTO);
         vars.put("observacaoCompleta", buildCombinedObservation(company, atendimento));
+        vars.put("itemProcedimentoNomes", itemProcedimentoNomes);
 
         return reportRenderingService.render("atendimento/encaminhamento", vars);
     }
