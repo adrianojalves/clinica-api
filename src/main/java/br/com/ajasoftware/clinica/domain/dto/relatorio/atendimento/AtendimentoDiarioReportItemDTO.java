@@ -13,5 +13,6 @@ public record AtendimentoDiarioReportItemDTO(
         BigDecimal acrescimo,
         BigDecimal desconto,
         BigDecimal totalGeral,
-        BigDecimal totalRepasse
+        BigDecimal totalRepasse,
+        String servicos
 ) {}

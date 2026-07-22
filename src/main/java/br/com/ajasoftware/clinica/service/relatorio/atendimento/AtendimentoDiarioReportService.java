@@ -110,6 +110,11 @@ public class AtendimentoDiarioReportService {
                 formasPagamento = "-";
             }
 
+            String servicos = a.getItens().stream()
+                    .map(item -> item.getMedicalProcedure() != null ? item.getMedicalProcedure().getName() : "")
+                    .filter(name -> !name.isEmpty())
+                    .collect(Collectors.joining(", "));
+
             return new AtendimentoDiarioReportItemDTO(
                     a.getId(),
                     a.getCliente() != null ? a.getCliente().getName() : "",
@@ -120,7 +125,8 @@ public class AtendimentoDiarioReportService {
                     acrescimo,
                     desconto,
                     totalGeral,
-                    totalRepasse
+                    totalRepasse,
+                    servicos
             );
         }).toList();
 

@@ -177,16 +177,12 @@
             border-bottom: none;
         }
 
-        .col-id        { width: 5%;  text-align: center; }
-        .col-cliente   { width: 18%; }
-        .col-clinica   { width: 15%; }
-        .col-emissao   { width: 10%; text-align: center; }
-        .col-pagamento { width: 12%; }
-        .col-valor     { width: 8%;  text-align: right; }
-        .col-acrescimo { width: 8%;  text-align: right; }
-        .col-desconto  { width: 8%;  text-align: right; }
-        .col-total     { width: 8%;  text-align: right; }
-        .col-repasse   { width: 8%;  text-align: right; }
+        .col-id        { width: 8%;  text-align: center; }
+        .col-cliente   { width: 25%; }
+        .col-clinica   { width: 20%; }
+        .col-servicos  { width: 22%; }
+        .col-pagamento { width: 15%; }
+        .col-total     { width: 10%; text-align: right; }
 
         /* ---- Totals row ---- */
         .totals-row td {
@@ -282,41 +278,29 @@
                 <th class="col-id">ID</th>
                 <th class="col-cliente">Cliente</th>
                 <th class="col-clinica">Clínica</th>
-                <th class="col-emissao">Emissão</th>
-                <th class="col-pagamento">Formas Pagamento</th>
-                <th class="col-valor text-right">Valor</th>
-                <th class="col-acrescimo text-right">Acréscimo</th>
-                <th class="col-desconto text-right">Desconto</th>
-                <th class="col-total text-right">Total Geral</th>
-                <th class="col-repasse text-right">Total Repasse</th>
+                <th class="col-servicos">Serviços</th>
+                <th class="col-pagamento">Forma de Pagamento</th>
+                <th class="col-total">Total Geral</th>
             </tr>
         </thead>
         <tbody>
             <tr th:if="${itens == null or itens.isEmpty()}">
-                <td colspan="10" class="empty-message">Nenhum atendimento encontrado para os filtros informados.</td>
+                <td colspan="6" class="empty-message">Nenhum atendimento encontrado para os filtros informados.</td>
             </tr>
 
             <tr th:each="item : ${itens}">
                 <td class="col-id" th:text="${item.id}">1</td>
                 <td class="col-cliente" th:text="${item.clienteNome}">Nome Cliente</td>
                 <td class="col-clinica" th:text="${item.clinicaNome}">Nome Clínica</td>
-                <td class="col-emissao" th:text="${item.dataEmissao != null ? #temporals.format(item.dataEmissao, 'dd/MM/yyyy HH:mm') : ''}">00/00/0000 00:00</td>
+                <td class="col-servicos" th:text="${item.servicos}">Nome Serviço</td>
                 <td class="col-pagamento" th:text="${item.formasPagamento}">Dinheiro</td>
-                <td class="col-valor text-right" th:text="${#numbers.formatDecimal(item.valor, 1, 'POINT', 2, 'COMMA')}">0,00</td>
-                <td class="col-acrescimo text-right" th:text="${#numbers.formatDecimal(item.acrescimo, 1, 'POINT', 2, 'COMMA')}">0,00</td>
-                <td class="col-desconto text-right" th:text="${#numbers.formatDecimal(item.desconto, 1, 'POINT', 2, 'COMMA')}">0,00</td>
-                <td class="col-total text-right" th:text="${#numbers.formatDecimal(item.totalGeral, 1, 'POINT', 2, 'COMMA')}">0,00</td>
-                <td class="col-repasse text-right" th:text="${#numbers.formatDecimal(item.totalRepasse, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                <td class="col-total" th:text="${#numbers.formatDecimal(item.totalGeral, 1, 'POINT', 2, 'COMMA')}">0,00</td>
             </tr>
         </tbody>
         <tfoot th:if="${itens != null and !itens.isEmpty()}">
             <tr class="totals-row">
                 <td colspan="5" class="text-right">TOTAL GERAL:</td>
-                <td class="col-valor text-right" th:text="${#numbers.formatDecimal(sumValor, 1, 'POINT', 2, 'COMMA')}">0,00</td>
-                <td class="col-acrescimo text-right" th:text="${#numbers.formatDecimal(sumAcrescimo, 1, 'POINT', 2, 'COMMA')}">0,00</td>
-                <td class="col-desconto text-right" th:text="${#numbers.formatDecimal(sumDesconto, 1, 'POINT', 2, 'COMMA')}">0,00</td>
-                <td class="col-total text-right" th:text="${#numbers.formatDecimal(sumTotalGeral, 1, 'POINT', 2, 'COMMA')}">0,00</td>
-                <td class="col-repasse text-right" th:text="${#numbers.formatDecimal(sumTotalRepasse, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                <td class="col-total" th:text="${#numbers.formatDecimal(sumTotalGeral, 1, 'POINT', 2, 'COMMA')}">0,00</td>
             </tr>
         </tfoot>
     </table>
