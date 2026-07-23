@@ -78,7 +78,7 @@ public class AtendimentoDiarioReportService {
                         .map(p -> p.getValor() != null ? p.getValor() : BigDecimal.ZERO)
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-                valor = somaPagamentos.compareTo(BigDecimal.ZERO) > 0 ? somaPagamentos : (a.getTotalPrice() != null ? a.getTotalPrice() : BigDecimal.ZERO);
+                valor = a.getTotalPrice() != null ? a.getTotalPrice() : BigDecimal.ZERO;
 
                 desconto = pagamentos.stream()
                         .map(p -> p.getValorDesconto() != null ? p.getValorDesconto() : BigDecimal.ZERO)
